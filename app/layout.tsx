@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "MyWally — Mod Mudah",
+  title: "myWally",
   description: "Your wallet companion for confident financial participation",
 };
 
