@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { getOnboardingState, setOnboardingState } from '@/app/lib/onboarding-storage'
+import { useAddFamilyMember, useCompleteOnboarding } from '@/app/lib/hooks/useOnboarding'
 
 type Step =
   | 'ask_family'
@@ -17,10 +17,6 @@ type Message = {
   id: string
   variant: 'bot' | 'user'
   text: string
-}
-
-function getTime(): string {
-  return new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 function SendIcon() {
@@ -42,6 +38,8 @@ function WallyAvatar() {
 export default function FamilyPage() {
   const router = useRouter()
   const bottomRef = useRef<HTMLDivElement>(null)
+  const { mutate: addFamilyMember } = useAddFamilyMember()
+  const { mutate: completeOnboarding } = useCompleteOnboarding()
 
   const [messages, setMessages] = useState<Message[]>([])
   const [step, setStep] = useState<Step>('ask_family')
@@ -49,20 +47,20 @@ export default function FamilyPage() {
   const [phoneInput, setPhoneInput] = useState('')
   const [selectedRelation, setSelectedRelation] = useState('')
 
+  const addMsg = useCallback((variant: 'bot' | 'user', text: string) => {
+    setMessages(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, variant, text }])
+  }, [])
+
+  const addBotMsg = useCallback((text: string) => addMsg('bot', text), [addMsg])
+
   useEffect(() => {
     const t = setTimeout(() => addBotMsg('Do you want to add your family members to help you?'), 400)
     return () => clearTimeout(t)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [addBotMsg])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isTyping])
-
-  function addMsg(variant: 'bot' | 'user', text: string) {
-    setMessages(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, variant, text }])
-  }
-  function addBotMsg(text: string) { addMsg('bot', text) }
 
   function botReply(text: string, nextStep: Step, delay = 900) {
     setIsTyping(true)
@@ -97,14 +95,14 @@ export default function FamilyPage() {
     botReply('No problem. You can update this later from your profile.', 'done_skipped')
   }
   function handleProceed() {
-    const state = getOnboardingState()
-    if (selectedRelation && phoneInput) {
-      setOnboardingState({
-        ...state,
-        familyMembers: [...state.familyMembers, { phone: phoneInput, relationship: selectedRelation }],
-      })
+    const finish = () => {
+      completeOnboarding(undefined, { onSuccess: () => router.push('/dashboard') })
     }
-    router.push('/dashboard')
+    if (selectedRelation && phoneInput) {
+      addFamilyMember({ phone: phoneInput, relationship: selectedRelation }, { onSuccess: finish })
+    } else {
+      finish()
+    }
   }
 
   const isDone = step === 'done_added' || step === 'done_skipped'
@@ -153,22 +151,6 @@ export default function FamilyPage() {
           </div>
         )}
 
-        {!isTyping && step === 'ask_phone' && (
-          <div className="flex gap-2 pl-12">
-            <input
-              type="tel"
-              value={phoneInput}
-              onChange={e => setPhoneInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handlePhoneSubmit()}
-              placeholder="e.g. 012-234 5678"
-              className="flex-1 border border-border rounded-full px-4 py-2.5 text-sm bg-white outline-none focus:border-primary"
-            />
-            <button onClick={handlePhoneSubmit} className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0">
-              <SendIcon />
-            </button>
-          </div>
-        )}
-
         {!isTyping && step === 'ask_relation' && (
           <div className="flex flex-wrap gap-2 pl-12">
             {['Children', 'Sibling', 'Spouse', 'Other'].map(rel => (
@@ -204,6 +186,21 @@ export default function FamilyPage() {
           <button onClick={handleProceed} className="w-full h-[52px] rounded-2xl bg-primary text-white font-bold text-base active:bg-primary-dark transition-colors">
             Proceed to Dashboard
           </button>
+        ) : step === 'ask_phone' && !isTyping ? (
+          <div className="flex items-center gap-2">
+            <input
+              type="tel"
+              value={phoneInput}
+              onChange={e => setPhoneInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handlePhoneSubmit()}
+              placeholder="e.g. 012-234 5678"
+              autoFocus
+              className="flex-1 border border-primary rounded-full px-4 py-2.5 text-sm bg-white outline-none"
+            />
+            <button onClick={handlePhoneSubmit} className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 active:bg-primary-dark">
+              <SendIcon />
+            </button>
+          </div>
         ) : (
           <div className="flex items-center gap-2">
             <input

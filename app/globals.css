@@ -1,25 +1,21 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #111827;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+@theme {
   --font-sans: var(--font-inter);
 
+  --color-background: #ffffff;
+  --color-foreground: #111827;
+
   /* Design tokens — myWally v2 */
-  --color-primary: #7C3AED;      /* Purple — buttons, balance card, nav active */
-  --color-primary-dark: #6D28D9; /* Hover/pressed purple */
-  --color-accent: #F97316;       /* Orange — page headers */
-  --color-accent-dark: #EA580C;  /* Pressed orange */
-  --color-surface: #F5F3FF;      /* Lavender — page backgrounds, chat bg */
-  --color-success: #16A34A;      /* Green — checkmarks, Connected badge */
-  --color-danger: #DC2626;       /* Red — Remove Access, I don't agree */
-  --color-muted: #6B7280;        /* Gray — secondary labels, inactive nav */
-  --color-border: #E5E7EB;       /* Light gray — dividers, input borders */
+  --color-primary: #7c3aed; /* Purple — buttons, balance card, nav active, Wally header */
+  --color-primary-dark: #6d28d9; /* Pressed purple */
+  --color-accent: #ec7c3c; /* Orange — page headers, section labels */
+  --color-accent-dark: #d96a2a; /* Pressed orange */
+  --color-surface: #f5f3ff; /* Lavender — page backgrounds */
+  --color-success: #16a34a; /* Green — checkmarks, Connected badge */
+  --color-danger: #dc2626; /* Red — Remove Access, destructive actions */
+  --color-muted: #6b7280; /* Secondary labels, inactive nav */
+  --color-border: #e5e7eb; /* Dividers, input borders */
 }
 
 /* Mobile webview baseline */
@@ -38,8 +34,8 @@ html {
 
 body {
   min-height: 100%;
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-background);
+  color: var(--color-foreground);
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
   font-size: 16px;
   line-height: 1.5;

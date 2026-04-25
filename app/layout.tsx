@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -32,7 +33,7 @@ export default function RootLayout({
           On desktop browser this renders as a centered phone-width card.
         */}
         <div className="w-full max-w-[430px] min-h-dvh bg-white shadow-2xl flex flex-col relative overflow-x-hidden">
-          {children}
+          <Providers>{children}</Providers>
         </div>
       </body>
     </html>

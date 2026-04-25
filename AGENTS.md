@@ -51,8 +51,8 @@ Tokens defined in `app/globals.css` `@theme inline` — use as Tailwind utility 
 |---|---|---|---|
 | `--color-primary` | `primary` | `#7C3AED` | Buttons, active nav, user chat bubbles, balance card, Wally header |
 | `--color-primary-dark` | `primary-dark` | `#6D28D9` | Hover/active state of primary |
-| `--color-accent` | `accent` | `#F97316` | Page headers (Send Money, Dashboard, Budget, Member), section labels |
-| `--color-accent-dark` | `accent-dark` | `#EA580C` | Hover/active state of accent |
+| `--color-accent` | `accent` | `#EC7C3C` | Page headers (Send Money, Dashboard, Budget, Member), section labels |
+| `--color-accent-dark` | `accent-dark` | `#D96A2A` | Hover/active state of accent |
 | `--color-surface` | `surface` | `#F5F3FF` | Page backgrounds (lavender tint), progress bar tracks |
 | `--color-success` | `success` | `#16A34A` | "Connected" badge, checkmarks, progress fill |
 | `--color-danger` | `danger` | `#DC2626` | Destructive actions (Remove Access, "I don't agree") |

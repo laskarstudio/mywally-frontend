@@ -13,24 +13,50 @@ function ChevronIcon() {
   )
 }
 
+function MobileIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EC7C3C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="2" width="14" height="20" rx="2" />
+      <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2" />
+    </svg>
+  )
+}
+
+function WalletIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EC7C3C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5z" />
+      <path d="M16 12a1 1 0 100 2 1 1 0 000-2z" fill="#EC7C3C" />
+    </svg>
+  )
+}
+
+function BankIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EC7C3C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 22h18M3 10h18M12 2L3 7h18L12 2zM5 10v8M19 10v8M9 10v8M15 10v8" />
+    </svg>
+  )
+}
+
 const OPTIONS = [
   {
-    icon: '📱',
+    Icon: MobileIcon,
     title: 'To Mobile Number',
     subtitle: 'Send to any mobile number',
-    href: '/send-money/mobile',
+    method: 'mobile',
   },
   {
-    icon: '👜',
+    Icon: WalletIcon,
     title: 'To TnG eWallet',
     subtitle: 'Send to TnG eWallet users',
-    href: '/send-money/ewallet',
+    method: 'ewallet',
   },
   {
-    icon: '🏦',
+    Icon: BankIcon,
     title: 'To Bank Account',
     subtitle: 'Send to any bank account',
-    href: '/send-money/bank',
+    method: 'bank',
   },
 ]
 
@@ -59,16 +85,18 @@ export default function SendMoneyPage() {
 
       {/* Options */}
       <div className="flex-1 min-h-0 overflow-y-auto bg-surface px-4 py-5 space-y-3">
-        {OPTIONS.map(opt => (
+        {OPTIONS.map(({ Icon, title, subtitle, method }) => (
           <button
-            key={opt.title}
-            onClick={() => router.push(opt.href)}
+            key={title}
+            onClick={() => router.push(`/send-money/confirm?method=${method}`)}
             className="w-full bg-white rounded-2xl px-4 py-4 flex items-center gap-4 shadow-sm active:bg-surface transition-colors text-left"
           >
-            <span className="text-3xl">{opt.icon}</span>
+            <div className="w-11 h-11 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
+              <Icon />
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-foreground">{opt.title}</p>
-              <p className="text-muted text-sm">{opt.subtitle}</p>
+              <p className="font-bold text-foreground">{title}</p>
+              <p className="text-muted text-sm">{subtitle}</p>
             </div>
             <ChevronIcon />
           </button>

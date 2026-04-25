@@ -5,20 +5,33 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import StatusBar from '@/app/components/status-bar'
 import BottomNav from '@/app/components/bottom-nav'
+import { useBudget, useSaveBudget } from '@/app/lib/hooks/useBudget'
+import type { Budget } from '@/app/lib/api'
 
-type Period = 'Daily' | 'Weekly' | 'Monthly'
+type Period = Budget['period']
+
+const thresholdSteps = [20, 40, 60, 80, 100]
 
 export default function BudgetPage() {
   const router = useRouter()
-  const [amount, setAmount] = useState('100.00')
-  const [period, setPeriod] = useState<Period>('Daily')
-  const [threshold, setThreshold] = useState(80)
+  const { data: budget } = useBudget()
+  const { mutate: saveBudget, isPending } = useSaveBudget()
+
+  // undefined = not yet changed by user; fall back to server data or hard defaults
+  const [amountOverride,    setAmount]    = useState<string | undefined>()
+  const [periodOverride,    setPeriod]    = useState<Period | undefined>()
+  const [thresholdOverride, setThreshold] = useState<number | undefined>()
+
+  const amount    = amountOverride    ?? budget?.amount    ?? '100.00'
+  const period    = periodOverride    ?? budget?.period    ?? 'Daily'
+  const threshold = thresholdOverride ?? budget?.threshold ?? 80
 
   function handleSave() {
-    router.push('/dashboard')
+    saveBudget(
+      { amount, period, threshold },
+      { onSuccess: () => router.push('/dashboard') },
+    )
   }
-
-  const thresholdSteps = [20, 40, 60, 80, 100]
 
   return (
     <div className="flex flex-col flex-1">
@@ -117,9 +130,10 @@ export default function BudgetPage() {
         {/* Save */}
         <button
           onClick={handleSave}
-          className="w-full h-[52px] rounded-2xl bg-primary text-white font-bold text-base active:bg-primary-dark transition-colors"
+          disabled={isPending}
+          className="w-full h-[52px] rounded-2xl bg-primary text-white font-bold text-base active:bg-primary-dark transition-colors disabled:opacity-40"
         >
-          Save Budget
+          {isPending ? 'Saving…' : 'Save Budget'}
         </button>
 
       </div>

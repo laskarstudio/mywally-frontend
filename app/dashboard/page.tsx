@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import StatusBar from '@/app/components/status-bar'
 import BottomNav from '@/app/components/bottom-nav'
-import { setOnboardingState } from '@/app/lib/onboarding-storage'
+import { useAccountSummary } from '@/app/lib/hooks/useAccount'
+import { useMembers } from '@/app/lib/hooks/useMembers'
+import { useCompleteOnboarding } from '@/app/lib/hooks/useOnboarding'
 
 /* ── Icons ──────────────────────────────────────────────── */
 function BellIcon() {
@@ -65,24 +67,15 @@ function PersonIcon() {
   )
 }
 
-/* ── Daily budget state (mock) ──────────────────────────── */
-const DAILY_BUDGET = 100
-const SPENT_TODAY = 45
-const REMAINING = DAILY_BUDGET - SPENT_TODAY
-const PROGRESS_PCT = Math.round((SPENT_TODAY / DAILY_BUDGET) * 100)
-
-const MEMBERS = [
-  { id: 'radhiah', name: 'Nur Radhiah', relationship: 'Daughter' },
-  { id: 'amirul', name: 'Amirul Ruzaimi', relationship: 'Son' },
-]
-
 export default function Dashboard() {
   const router = useRouter()
-  const [balance] = useState('1,568.97')
+  const { data: account } = useAccountSummary()
+  const { data: members } = useMembers()
+  const { mutate: completeOnboarding } = useCompleteOnboarding()
 
   useEffect(() => {
-    setOnboardingState({ complete: true })
-  }, [])
+    completeOnboarding()
+  }, [completeOnboarding])
 
   return (
     <div className="flex flex-col flex-1 bg-surface">
@@ -107,24 +100,28 @@ export default function Dashboard() {
         {/* Balance card */}
         <div className="bg-primary rounded-2xl p-5 text-center">
           <p className="text-white/70 text-sm mb-1">Available Balance</p>
-          <p className="text-white font-bold text-4xl tracking-tight">RM{balance}</p>
+          <p className="text-white font-bold text-4xl tracking-tight">
+            RM{account?.balance ?? '—'}
+          </p>
         </div>
 
         {/* Today's Summary */}
         <div className="bg-white rounded-2xl p-5 shadow-sm">
           <p className="text-accent font-bold text-base mb-4">Today&apos;s Summary</p>
 
-          <p className="text-primary font-bold text-3xl">RM{SPENT_TODAY}.00</p>
+          <p className="text-primary font-bold text-3xl">RM{account?.spentToday ?? '—'}.00</p>
           <p className="text-foreground font-medium text-sm mb-4">Spent today</p>
 
           <div className="border-t border-border pt-4">
             <p className="text-foreground text-sm mb-1">You have</p>
-            <p className="text-primary font-bold text-3xl">RM{REMAINING}.00</p>
+            <p className="text-primary font-bold text-3xl">RM{account?.remaining ?? '—'}.00</p>
             <p className="text-foreground font-medium text-sm mb-3">daily budget left</p>
 
-            {/* Progress bar */}
             <div className="h-3 rounded-full bg-surface overflow-hidden">
-              <div className="h-full rounded-full bg-success transition-all" style={{ width: `${PROGRESS_PCT}%` }} />
+              <div
+                className="h-full rounded-full bg-success transition-all"
+                style={{ width: `${account?.progressPct ?? 0}%` }}
+              />
             </div>
           </div>
         </div>
@@ -132,9 +129,9 @@ export default function Dashboard() {
         {/* Action grid */}
         <div className="grid grid-cols-2 gap-3">
           {[
-            { label: 'Send Money', icon: <SendIcon />, bg: 'bg-blue-50', href: '/send-money' },
-            { label: 'Request Money', icon: <RequestIcon />, bg: 'bg-green-50', href: '/request-money' },
-            { label: 'Pay Bills', icon: <BillsIcon />, bg: 'bg-purple-50', href: '/pay-bills' },
+            { label: 'Send Money',    icon: <SendIcon />,     bg: 'bg-blue-50',   href: '/send-money' },
+            { label: 'Request Money', icon: <RequestIcon />,  bg: 'bg-green-50',  href: '/request-money' },
+            { label: 'Pay Bills',     icon: <BillsIcon />,    bg: 'bg-purple-50', href: '/pay-bills' },
             { label: 'View Spending', icon: <SpendingIcon />, bg: 'bg-orange-50', href: '/spending' },
           ].map(({ label, icon, bg, href }) => (
             <button
@@ -156,11 +153,11 @@ export default function Dashboard() {
             <p className="font-bold text-foreground">Members</p>
             <button className="text-primary text-sm font-medium">View All</button>
           </div>
-          {MEMBERS.map((member, i) => (
+          {(members ?? []).map((member, i, arr) => (
             <button
               key={member.id}
               onClick={() => router.push(`/members/${member.id}`)}
-              className={`w-full flex items-center gap-3 px-4 py-3 active:bg-surface transition-colors text-left ${i < MEMBERS.length - 1 ? 'border-b border-border' : ''}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 active:bg-surface transition-colors text-left ${i < arr.length - 1 ? 'border-b border-border' : ''}`}
             >
               <div className="w-11 h-11 rounded-full bg-surface flex items-center justify-center flex-shrink-0">
                 <PersonIcon />
