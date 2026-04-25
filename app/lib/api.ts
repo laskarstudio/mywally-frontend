@@ -144,15 +144,17 @@ export async function removeMember(id: string): Promise<void> {
 
 // ─── Budget ───────────────────────────────────────────────────────────────────
 
-export async function fetchBudget(): Promise<Budget> {
+let _savedBudget: Budget | null = null
+
+export async function fetchBudget(): Promise<Budget | null> {
   await delay(300)
-  return { amount: '100.00', period: 'Daily', threshold: 80 }
+  return _savedBudget
 }
 
 export async function saveBudget(payload: Budget): Promise<Budget> {
   await delay(500)
-  // TODO: PUT /budget
-  return payload
+  _savedBudget = payload
+  return _savedBudget
 }
 
 // ─── Wally ────────────────────────────────────────────────────────────────────

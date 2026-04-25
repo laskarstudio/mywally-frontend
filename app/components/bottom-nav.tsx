@@ -28,31 +28,37 @@ export default function BottomNav() {
   const isProfile = pathname === '/profile'
 
   return (
-    <nav className="bg-white border-t border-border flex items-end justify-around px-6 pb-2 overflow-visible">
-      {/* Home */}
-      <Link href="/dashboard" className="flex flex-col items-center gap-0.5 py-2">
-        <HomeIcon active={isHome} />
-        <span className={`text-[11px] font-medium ${isHome ? 'text-primary' : 'text-muted'}`}>Home</span>
-      </Link>
+    <>
+      {/* In-flow spacer — keeps page content from sliding under the fixed nav */}
+      <div className="h-16 flex-shrink-0" aria-hidden="true" />
 
-      {/* Wally — elevated center button */}
-      <Link href="/wally" className="flex flex-col items-center -mt-5">
-        <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg border-4 border-white">
-          <Image
-            src="/assets/my-wally-chat-profile.png"
-            alt="Wally"
-            width={32}
-            height={32}
-            className="rounded-full"
-          />
-        </div>
-      </Link>
+      {/* Fixed nav — pinned to viewport bottom, capped to the phone shell width */}
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 bg-white border-t border-border flex items-end justify-around px-6 pb-2 overflow-visible">
+        {/* Home */}
+        <Link href="/dashboard" className="flex flex-col items-center gap-0.5 py-2">
+          <HomeIcon active={isHome} />
+          <span className={`text-[11px] font-medium ${isHome ? 'text-primary' : 'text-muted'}`}>Home</span>
+        </Link>
 
-      {/* Profile */}
-      <Link href="/profile" className="flex flex-col items-center gap-0.5 py-2">
-        <ProfileIcon active={isProfile} />
-        <span className={`text-[11px] font-medium ${isProfile ? 'text-primary' : 'text-muted'}`}>Profile</span>
-      </Link>
-    </nav>
+        {/* Wally — elevated center button */}
+        <Link href="/wally" className="flex flex-col items-center -mt-5">
+          <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg border-4 border-white">
+            <Image
+              src="/assets/my-wally-chat-profile.png"
+              alt="Wally"
+              width={32}
+              height={32}
+              className="rounded-full"
+            />
+          </div>
+        </Link>
+
+        {/* Profile */}
+        <Link href="/profile" className="flex flex-col items-center gap-0.5 py-2">
+          <ProfileIcon active={isProfile} />
+          <span className={`text-[11px] font-medium ${isProfile ? 'text-primary' : 'text-muted'}`}>Profile</span>
+        </Link>
+      </nav>
+    </>
   )
 }

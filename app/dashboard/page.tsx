@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import StatusBar from '@/app/components/status-bar'
 import BottomNav from '@/app/components/bottom-nav'
 import { useAccountSummary } from '@/app/lib/hooks/useAccount'
 import { useMembers } from '@/app/lib/hooks/useMembers'
 import { useCompleteOnboarding } from '@/app/lib/hooks/useOnboarding'
+import { useBudget } from '@/app/lib/hooks/useBudget'
 
 /* ── Icons ──────────────────────────────────────────────── */
 function BellIcon() {
@@ -71,6 +73,7 @@ export default function Dashboard() {
   const router = useRouter()
   const { data: account } = useAccountSummary()
   const { data: members } = useMembers()
+  const { data: budget } = useBudget()
   const { mutate: completeOnboarding } = useCompleteOnboarding()
 
   useEffect(() => {
@@ -105,26 +108,52 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Today's Summary */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <p className="text-accent font-bold text-base mb-4">Today&apos;s Summary</p>
+        {/* Budget section — banner if not configured, summary card if configured */}
+        {!budget ? (
+          <button
+            onClick={() => router.push('/budget')}
+            className="w-full bg-accent rounded-2xl flex items-center overflow-hidden active:opacity-80 transition-opacity"
+          >
+            <Image
+              src="/assets/my-wally-daily-budget.png"
+              alt="Wally"
+              width={100}
+              height={100}
+              className="object-contain flex-shrink-0 self-end"
+            />
+            <div className="flex-1 px-3 text-left">
+              <p className="text-white font-bold text-lg leading-snug">Setup your<br />Daily Budget</p>
+            </div>
+            <span className="text-white text-xl font-bold pr-4">›</span>
+          </button>
+        ) : (
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <p className="text-accent font-bold text-base mb-4">Today&apos;s Summary</p>
 
-          <p className="text-primary font-bold text-3xl">RM{account?.spentToday ?? '—'}.00</p>
-          <p className="text-foreground font-medium text-sm mb-4">Spent today</p>
+            <p className="text-primary font-bold text-3xl">RM{account?.spentToday ?? '—'}.00</p>
+            <p className="text-foreground font-medium text-sm mb-4">Spent today</p>
 
-          <div className="border-t border-border pt-4">
-            <p className="text-foreground text-sm mb-1">You have</p>
-            <p className="text-primary font-bold text-3xl">RM{account?.remaining ?? '—'}.00</p>
-            <p className="text-foreground font-medium text-sm mb-3">daily budget left</p>
+            <div className="border-t border-border pt-4">
+              <p className="text-foreground text-sm mb-1">You have</p>
+              <p className="text-primary font-bold text-3xl">RM{account?.remaining ?? '—'}.00</p>
+              <p className="text-foreground font-medium text-sm mb-3">daily budget left</p>
 
-            <div className="h-3 rounded-full bg-surface overflow-hidden">
-              <div
-                className="h-full rounded-full bg-success transition-all"
-                style={{ width: `${account?.progressPct ?? 0}%` }}
-              />
+              <div className="h-3 rounded-full bg-surface overflow-hidden mb-4">
+                <div
+                  className="h-full rounded-full bg-success transition-all"
+                  style={{ width: `${account?.progressPct ?? 0}%` }}
+                />
+              </div>
+
+              <button
+                onClick={() => router.push('/budget')}
+                className="w-full h-11 rounded-xl bg-accent text-white font-semibold text-sm flex items-center justify-center gap-1 active:opacity-80 transition-opacity"
+              >
+                Daily Budget Settings <span className="text-base">›</span>
+              </button>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Action grid */}
         <div className="grid grid-cols-2 gap-3">
