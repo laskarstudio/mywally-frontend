@@ -11,6 +11,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "myWally",
   description: "Your wallet companion for confident financial participation",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -18,6 +22,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#7C3AED",
 };
 
 export default function RootLayout({
