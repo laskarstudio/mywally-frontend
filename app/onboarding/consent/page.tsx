@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import StatusBar from '@/app/components/status-bar'
 import ConsentCheckItem from '@/app/components/consent-check-item'
 
 function CheckIcon() {
@@ -23,7 +22,6 @@ export default function ConsentPage() {
     <div className="flex flex-col flex-1 bg-white">
 
       <div className="bg-accent text-center px-6 pb-24 flex-shrink-0">
-        <StatusBar variant="light" />
         <p className="text-white text-lg mt-2">Welcome to</p>
         <h1 className="text-white font-bold text-[32px] leading-tight">Elderly Mode</h1>
       </div>

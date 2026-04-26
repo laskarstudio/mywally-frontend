@@ -1,7 +1,6 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import StatusBar from '@/app/components/status-bar'
 import BottomNav from '@/app/components/bottom-nav'
 import ConsentCheckItem from '@/app/components/consent-check-item'
 import { useMember, useRemoveMember } from '@/app/lib/hooks/useMembers'
@@ -34,7 +33,6 @@ export default function MemberProfilePage() {
 
       {/* Orange header — pb-20 (80px) leaves 24px gap before avatar top */}
       <div className="bg-accent text-center flex-shrink-0">
-        <StatusBar variant="light" />
         <div className="px-5 pb-20 mt-2">
           <h1 className="text-white font-bold text-2xl">{displayName}</h1>
           <p className="text-white/80 text-sm mt-1">{displayRelationship}</p>

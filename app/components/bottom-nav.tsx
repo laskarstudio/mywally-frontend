@@ -25,7 +25,6 @@ function ProfileIcon({ active }: { active: boolean }) {
 export default function BottomNav() {
   const pathname = usePathname()
   const isHome = pathname === '/dashboard'
-  const isProfile = pathname === '/profile'
 
   return (
     <>
@@ -53,11 +52,16 @@ export default function BottomNav() {
           </div>
         </Link>
 
-        {/* Profile */}
-        <Link href="/profile" className="flex flex-col items-center gap-0.5 py-2">
-          <ProfileIcon active={isProfile} />
-          <span className={`text-[11px] font-medium ${isProfile ? 'text-primary' : 'text-muted'}`}>Profile</span>
-        </Link>
+        {/* Profile — disabled (page not implemented yet) */}
+        <button
+          type="button"
+          disabled
+          aria-disabled="true"
+          className="flex flex-col items-center gap-0.5 py-2 cursor-not-allowed"
+        >
+          <ProfileIcon active={false} />
+          <span className="text-[11px] font-medium text-muted">Profile</span>
+        </button>
       </nav>
     </>
   )

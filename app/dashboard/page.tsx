@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import StatusBar from "@/app/components/status-bar";
 import BottomNav from "@/app/components/bottom-nav";
 import { useAccountSummary } from "@/app/lib/hooks/useAccount";
 import { useMembers } from "@/app/lib/hooks/useMembers";
@@ -159,7 +158,6 @@ export default function Dashboard() {
     <div className="flex flex-col flex-1 bg-surface">
       {/* Orange Header */}
       <div className="bg-accent flex-shrink-0">
-        <StatusBar variant="light" />
         <div className="flex items-center justify-between px-5 pb-5 mt-1">
           <div>
             <p className="text-white/80 text-sm">Good morning,</p>

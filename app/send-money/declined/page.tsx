@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import StatusBar from "@/app/components/status-bar";
 
 function DeclinedBadge() {
   return (
@@ -36,7 +35,6 @@ export default function DeclinedPage() {
     <div className="flex flex-col flex-1 bg-white">
       {/* Orange curved header */}
       <div className="bg-accent rounded-b-[40px] flex-shrink-0 pb-10">
-        <StatusBar variant="light" />
         <div className="px-6 pt-4 text-center">
           <h1 className="text-white font-bold text-3xl leading-snug mb-3">
             Your transaction has been rejected
