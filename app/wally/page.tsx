@@ -1,117 +1,174 @@
-'use client'
+"use client";
 
-import { useRef, useState, useEffect } from 'react'
-import Image from 'next/image'
-import StatusBar from '@/app/components/status-bar'
-import BottomNav from '@/app/components/bottom-nav'
-import ChatActionCard from '@/app/components/chat-action-card'
-import { useChat } from '@/app/lib/hooks/useChat'
+import { useRef, useState, useEffect } from "react";
+import Image from "next/image";
+import StatusBar from "@/app/components/status-bar";
+import BottomNav from "@/app/components/bottom-nav";
+import ChatActionCard from "@/app/components/chat-action-card";
+import { useChat } from "@/app/lib/hooks/useChat";
 
 /* ── Icons ──────────────────────────────────────────────────────────────────── */
 function SpendIcon() {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" />
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#3B82F6"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="1" y="4" width="22" height="16" rx="2" />
+      <line x1="1" y1="10" x2="23" y2="10" />
     </svg>
-  )
+  );
 }
 function ChartIcon() {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round">
-      <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#16A34A"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    >
+      <line x1="18" y1="20" x2="18" y2="10" />
+      <line x1="12" y1="20" x2="12" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="14" />
     </svg>
-  )
+  );
 }
 function ShieldIcon() {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#F97316"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     </svg>
-  )
+  );
 }
 function ReceiptIcon() {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#7C3AED"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
       <polyline points="14 2 14 8 20 8" />
-      <line x1="8" y1="13" x2="16" y2="13" /><line x1="8" y1="17" x2="12" y2="17" />
+      <line x1="8" y1="13" x2="16" y2="13" />
+      <line x1="8" y1="17" x2="12" y2="17" />
     </svg>
-  )
+  );
 }
 function SendIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="22" y1="2" x2="11" y2="13" />
+      <polygon points="22 2 15 22 11 13 2 9 22 2" />
     </svg>
-  )
+  );
 }
 
 const QUICK_ACTIONS = [
-  { label: 'How much can I spend today?', Icon: SpendIcon,   bg: 'bg-blue-50' },
-  { label: 'Show my spending',            Icon: ChartIcon,   bg: 'bg-green-50' },
-  { label: 'Check for scams',             Icon: ShieldIcon,  bg: 'bg-orange-50' },
-  { label: 'Show recent transactions',    Icon: ReceiptIcon, bg: 'bg-purple-50' },
-]
+  { label: "How much can I spend today?", Icon: SpendIcon, bg: "bg-blue-50" },
+  { label: "Show my spending", Icon: ChartIcon, bg: "bg-green-50" },
+  { label: "Check for scams", Icon: ShieldIcon, bg: "bg-orange-50" },
+  { label: "Show recent transactions", Icon: ReceiptIcon, bg: "bg-purple-50" },
+];
 
 function WallyAvatar() {
   return (
     <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-surface">
-      <Image src="/assets/my-wally-chat-profile.png" alt="Wally" width={40} height={40} />
+      <Image
+        src="/assets/my-wally-chat-profile.png"
+        alt="Wally"
+        width={40}
+        height={40}
+      />
     </div>
-  )
+  );
 }
 
 export default function WallyPage() {
-  const [view,      setView]      = useState<'home' | 'chat'>('home')
-  const [textInput, setTextInput] = useState('')
-  const bottomRef    = useRef<HTMLDivElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [view, setView] = useState<"home" | "chat">("home");
+  const [textInput, setTextInput] = useState("");
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const { messages, sendMessage, isLoading, llmOffline } = useChat()
+  const { messages, sendMessage, isLoading, llmOffline } = useChat();
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, isLoading])
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isLoading]);
 
   // iOS keyboard fix: active only during chat view
   useEffect(() => {
-    if (view !== 'chat') return
+    if (view !== "chat") return;
 
-    const doc = document.documentElement
-    doc.style.overflow = 'hidden'
+    const doc = document.documentElement;
+    doc.style.overflow = "hidden";
 
-    const vv = window.visualViewport
-    const el = containerRef.current
+    const vv = window.visualViewport;
+    const el = containerRef.current;
     if (vv && el) {
-      const resize = () => { el.style.height = `${vv.height}px` }
-      resize()
-      vv.addEventListener('resize', resize)
+      const resize = () => {
+        el.style.height = `${vv.height}px`;
+      };
+      resize();
+      vv.addEventListener("resize", resize);
       return () => {
-        doc.style.overflow = ''
-        vv.removeEventListener('resize', resize)
-      }
+        doc.style.overflow = "";
+        vv.removeEventListener("resize", resize);
+      };
     }
-    return () => { doc.style.overflow = '' }
-  }, [view])
+    return () => {
+      doc.style.overflow = "";
+    };
+  }, [view]);
 
   function handleQuickAction(label: string) {
-    setView('chat')
-    sendMessage(label)
+    setView("chat");
+    sendMessage(label);
   }
 
   function handleSend() {
-    const text = textInput.trim()
-    if (!text) return
-    setTextInput('')
-    setView('chat')
-    sendMessage(text)
+    const text = textInput.trim();
+    if (!text) return;
+    setTextInput("");
+    setView("chat");
+    sendMessage(text);
   }
 
   /* ── Chat view ──────────────────────────────────────────────────────────── */
-  if (view === 'chat') {
+  if (view === "chat") {
     return (
-      <div ref={containerRef} className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex flex-col bg-surface" style={{ height: '100dvh' }}>
-
+      <div className="flex flex-col h-dvh bg-surface">
         <div className="flex-shrink-0 bg-surface">
           <StatusBar variant="dark" />
         </div>
@@ -127,10 +184,9 @@ export default function WallyPage() {
 
         {/* Message list */}
         <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-3 pb-4 space-y-4">
-
-          {messages.map(msg => (
+          {messages.map((msg) => (
             <div key={msg.id}>
-              {msg.role === 'user' ? (
+              {msg.role === "user" ? (
                 <div className="flex justify-end">
                   <div className="bg-primary rounded-2xl rounded-tr-sm px-4 py-3 max-w-[75%]">
                     <p className="text-white text-sm font-medium">{msg.text}</p>
@@ -141,7 +197,9 @@ export default function WallyPage() {
                   <div className="flex items-start gap-2.5">
                     <WallyAvatar />
                     <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm max-w-[80%]">
-                      <p className="text-sm text-foreground leading-relaxed font-medium whitespace-pre-wrap">{msg.text}</p>
+                      <p className="text-sm text-foreground leading-relaxed font-medium whitespace-pre-wrap">
+                        {msg.text}
+                      </p>
                     </div>
                   </div>
                   {msg.actions.map((action, i) => (
@@ -177,9 +235,15 @@ export default function WallyPage() {
             <input
               type="text"
               value={textInput}
-              onChange={e => setTextInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSend()}
-              onFocus={() => setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 300)}
+              onChange={(e) => setTextInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              onFocus={() =>
+                setTimeout(
+                  () =>
+                    bottomRef.current?.scrollIntoView({ behavior: "smooth" }),
+                  300,
+                )
+              }
               placeholder="Ask me anything..."
               className="flex-1 bg-transparent text-sm outline-none text-foreground placeholder:text-muted"
             />
@@ -195,18 +259,19 @@ export default function WallyPage() {
 
         <BottomNav />
       </div>
-    )
+    );
   }
 
   /* ── Home view ──────────────────────────────────────────────────────────── */
   return (
-    <div className="flex flex-col flex-1 bg-surface">
-
+    <div className="flex flex-col flex-1 bg-white">
       <div className="bg-primary rounded-b-[40px] text-white text-center px-6 pb-10 flex-shrink-0">
         <StatusBar variant="light" />
         <p className="text-base mt-3 text-white/80">Hi, I&apos;m Wally.</p>
         <h1 className="text-3xl font-bold leading-snug mt-1">
-          How Can I Help<br />You Today?
+          How Can I Help
+          <br />
+          You Today?
         </h1>
       </div>
 
@@ -229,7 +294,9 @@ export default function WallyPage() {
               className={`${bg} rounded-2xl p-4 text-left flex flex-col gap-3 active:opacity-80 transition-opacity min-h-[100px]`}
             >
               <Icon />
-              <span className="text-foreground font-semibold text-sm leading-snug">{label}</span>
+              <span className="text-foreground font-semibold text-sm leading-snug">
+                {label}
+              </span>
             </button>
           ))}
         </div>
@@ -238,8 +305,8 @@ export default function WallyPage() {
           <input
             type="text"
             value={textInput}
-            onChange={e => setTextInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSend()}
+            onChange={(e) => setTextInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
             placeholder="Ask me anything..."
             className="flex-1 bg-transparent text-sm outline-none text-foreground placeholder:text-muted"
           />
@@ -255,5 +322,5 @@ export default function WallyPage() {
 
       <BottomNav />
     </div>
-  )
+  );
 }

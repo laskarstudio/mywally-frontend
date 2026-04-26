@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, Suspense } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import StatusBar from '@/app/components/status-bar'
@@ -11,6 +11,8 @@ function ProcessingContent() {
   const searchParams = useSearchParams()
   const method      = searchParams.get('method') ?? 'bank'
   const initiated   = useRef(false)
+  const navigated   = useRef(false)
+  const [secondsLeft, setSecondsLeft] = useState(120)
 
   const { mutate: initiateTransfer } = useInitiateTransfer()
 
@@ -20,11 +22,31 @@ function ProcessingContent() {
     initiateTransfer(
       { method, amount: '500.00', recipient: 'Ahmad Ali' },
       {
-        onSuccess: (data) =>
-          router.replace(data.status === 'approved' ? '/send-money/approved' : '/send-money/declined'),
+        onSuccess: (data) => {
+          if (navigated.current) return
+          navigated.current = true
+          router.replace(data.status === 'approved' ? '/send-money/approved' : '/send-money/declined')
+        },
       },
     )
   }, [method, initiateTransfer, router])
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setSecondsLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(id)
+          if (!navigated.current) {
+            navigated.current = true
+            router.replace('/send-money/declined?reason=timeout')
+          }
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(id)
+  }, [router])
 
   return (
     <div className="flex flex-col flex-1 bg-primary items-center justify-between py-0">
@@ -57,6 +79,9 @@ function ProcessingContent() {
             We&apos;re checking this transaction for your safety
           </p>
           <p className="text-white/60 text-sm">Please wait a moment</p>
+          <p className="text-white/80 text-sm font-semibold tabular-nums">
+            {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, '0')} remaining
+          </p>
         </div>
 
         <div className="flex gap-3">
