@@ -222,7 +222,7 @@ export async function initiateTransfer(payload: TransferPayload): Promise<Transf
   const start = Date.now()
   let current = txn
 
-  while (!terminalStates.has(current.state) && Date.now() - start < 28_000) {
+  while (!terminalStates.has(current.state) && Date.now() - start < 120_000) {
     await new Promise(r => setTimeout(r, 2000))
     const polled = await apiFetch<unknown>(`/transactions/${current.transactionId}`, { auth: false })
     current = TransactionResponseSchema.parse(polled)
