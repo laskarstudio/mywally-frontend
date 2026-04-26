@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-import StatusBar from '@/app/components/status-bar'
 
 function WarningIcon() {
   return (
@@ -20,7 +19,6 @@ function ConfirmContent() {
 
   return (
     <div className="flex flex-col flex-1 bg-white">
-      <StatusBar variant="dark" />
 
       <div className="flex-1 min-h-0 overflow-y-auto px-6 pt-6 pb-8">
 

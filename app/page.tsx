@@ -22,17 +22,13 @@ export default function SplashScreen() {
       <div className="absolute w-[180px] h-[180px] rounded-full bg-white/5 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
 
       <Image
-        src="/assets/my-wally-splash-screen-logo.png"
-        alt="myWally logo"
-        width={110}
-        height={110}
+        src="/assets/my-wally-logo.png"
+        alt="myWally"
+        width={140}
+        height={140}
         priority
-        className="mb-5 drop-shadow-lg"
+        className="drop-shadow-lg"
       />
-      <p className="text-white text-3xl tracking-tight">
-        <span className="font-light">my</span>
-        <span className="font-bold">Wally</span>
-      </p>
     </div>
   )
 }

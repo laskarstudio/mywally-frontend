@@ -51,6 +51,7 @@ export default function FamilyPage() {
   const router = useRouter();
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { mutateAsync: bootstrapFamily, isPending: isSubmitting } =
     useBootstrapFamily();
 
@@ -104,6 +105,13 @@ export default function FamilyPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping, step]);
+
+  useEffect(() => {
+    if (isTyping) return;
+    if (step === "ask_parent_name" || step === "ask_guardian_name" || step === "ask_phone") {
+      inputRef.current?.focus();
+    }
+  }, [step, isTyping]);
 
   function scrollToBottom() {
     setTimeout(
@@ -197,7 +205,7 @@ export default function FamilyPage() {
   const showPhoneBar = step === "ask_phone" && !isTyping;
 
   return (
-    <div className="flex flex-col h-dvh bg-surface">
+    <div ref={containerRef} className="flex flex-col h-dvh bg-surface">
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6 space-y-4">
         {messages.map((msg) => (
           <div
@@ -269,82 +277,43 @@ export default function FamilyPage() {
       </div>
 
       <div className="bg-white border-t border-border p-4 flex-shrink-0">
-        {showParentNameBar ? (
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={parentName}
-              onChange={(e) => setParentName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleParentNameSubmit()}
-              onFocus={scrollToBottom}
-              placeholder="Your full name"
-              autoFocus
-              className="flex-1 border border-primary rounded-full px-4 py-2.5 text-sm bg-white outline-none"
-            />
-            <button
-              onClick={handleParentNameSubmit}
-              disabled={!parentName.trim()}
-              className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 active:bg-primary-dark disabled:opacity-40"
-            >
-              <SendIcon />
-            </button>
-          </div>
-        ) : showGuardianNameBar ? (
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={guardianName}
-              onChange={(e) => setGuardianName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleGuardianNameSubmit()}
-              onFocus={scrollToBottom}
-              placeholder="Family member's full name"
-              autoFocus
-              className="flex-1 border border-primary rounded-full px-4 py-2.5 text-sm bg-white outline-none"
-            />
-            <button
-              onClick={handleGuardianNameSubmit}
-              disabled={!guardianName.trim()}
-              className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 active:bg-primary-dark disabled:opacity-40"
-            >
-              <SendIcon />
-            </button>
-          </div>
-        ) : showPhoneBar ? (
-          <div className="flex items-center gap-2">
-            <input
-              type="tel"
-              value={guardianPhone}
-              onChange={(e) => setGuardianPhone(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handlePhoneSubmit()}
-              onFocus={scrollToBottom}
-              placeholder="e.g. 0138155761"
-              autoFocus
-              className="flex-1 border border-primary rounded-full px-4 py-2.5 text-sm bg-white outline-none"
-            />
-            <button
-              onClick={handlePhoneSubmit}
-              disabled={!guardianPhone.trim()}
-              className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 active:bg-primary-dark disabled:opacity-40"
-            >
-              <SendIcon />
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              placeholder="Type a message..."
-              disabled
-              className="flex-1 border border-border rounded-full px-4 py-2.5 text-sm bg-surface text-muted cursor-not-allowed outline-none"
-            />
-            <button
-              disabled
-              className="w-10 h-10 rounded-full bg-primary/30 text-white flex items-center justify-center flex-shrink-0 cursor-not-allowed"
-            >
-              <SendIcon />
-            </button>
-          </div>
-        )}
+        {(() => {
+          const cfg = showParentNameBar
+            ? { type: "text" as const, value: parentName,    onChange: setParentName,    onSubmit: handleParentNameSubmit,    placeholder: "Your full name",            inputMode: "text" as const }
+            : showGuardianNameBar
+            ? { type: "text" as const, value: guardianName,  onChange: setGuardianName,  onSubmit: handleGuardianNameSubmit,  placeholder: "Family member's full name", inputMode: "text" as const }
+            : showPhoneBar
+            ? { type: "tel"  as const, value: guardianPhone, onChange: setGuardianPhone, onSubmit: handlePhoneSubmit,         placeholder: "e.g. 0138155761",           inputMode: "tel"  as const }
+            : null;
+
+          const disabled = !cfg;
+          const value    = cfg?.value ?? "";
+          const canSend  = !!cfg && value.trim().length > 0;
+
+          return (
+            <div className="flex items-center gap-2">
+              <input
+                ref={inputRef}
+                type={cfg?.type ?? "text"}
+                inputMode={cfg?.inputMode}
+                value={value}
+                disabled={disabled}
+                onChange={(e) => cfg?.onChange(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && canSend) cfg?.onSubmit(); }}
+                onFocus={scrollToBottom}
+                placeholder={cfg?.placeholder ?? "Type a message..."}
+                className={`flex-1 rounded-full px-4 py-2.5 text-sm outline-none border ${disabled ? "border-border bg-surface text-muted cursor-not-allowed" : "border-primary bg-white"}`}
+              />
+              <button
+                onClick={() => cfg?.onSubmit()}
+                disabled={!canSend}
+                className={`w-10 h-10 rounded-full text-white flex items-center justify-center flex-shrink-0 ${canSend ? "bg-primary active:bg-primary-dark" : "bg-primary/30 cursor-not-allowed"}`}
+              >
+                <SendIcon />
+              </button>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

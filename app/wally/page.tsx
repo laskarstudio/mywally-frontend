@@ -2,7 +2,6 @@
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import StatusBar from "@/app/components/status-bar";
 import BottomNav from "@/app/components/bottom-nav";
 import ChatActionCard from "@/app/components/chat-action-card";
 import { useChat } from "@/app/lib/hooks/useChat";
@@ -169,10 +168,6 @@ export default function WallyPage() {
   if (view === "chat") {
     return (
       <div className="flex flex-col h-dvh bg-surface">
-        <div className="flex-shrink-0 bg-surface">
-          <StatusBar variant="dark" />
-        </div>
-
         {/* LLM offline banner */}
         {llmOffline && (
           <div className="bg-orange-50 border-b border-orange-200 px-4 py-2 flex-shrink-0">
@@ -266,7 +261,6 @@ export default function WallyPage() {
   return (
     <div className="flex flex-col flex-1 bg-white">
       <div className="bg-primary rounded-b-[40px] text-white text-center px-6 pb-10 flex-shrink-0">
-        <StatusBar variant="light" />
         <p className="text-base mt-3 text-white/80">Hi, I&apos;m Wally.</p>
         <h1 className="text-3xl font-bold leading-snug mt-1">
           How Can I Help
@@ -275,12 +269,12 @@ export default function WallyPage() {
         </h1>
       </div>
 
-      <div className="flex-shrink-0 flex justify-center -mt-14 mb-4 relative z-10">
+      <div className="flex-shrink-0 flex justify-center -mt-10 mb-2 relative z-10 px-6">
         <Image
-          src="/assets/my-wally-chat-profile.png"
+          src="/assets/my-wally-chat.png"
           alt="Wally"
-          width={140}
-          height={140}
+          width={120}
+          height={120}
           className="object-contain drop-shadow-xl"
         />
       </div>
