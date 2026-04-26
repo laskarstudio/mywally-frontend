@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { getOnboardingState } from '@/app/lib/onboarding-storage'
+import { isAuthenticated } from '@/app/lib/auth'
 
 export default function SplashScreen() {
   const router = useRouter()
@@ -11,7 +12,13 @@ export default function SplashScreen() {
   useEffect(() => {
     const t = setTimeout(() => {
       const { complete } = getOnboardingState()
-      router.replace(complete ? '/dashboard' : '/onboarding/consent')
+      if (!complete) {
+        // Let unauthenticated users start onboarding — login happens inside the flow
+        router.replace('/onboarding/consent')
+        return
+      }
+      // Onboarding done: need auth to reach dashboard
+      router.replace(isAuthenticated() ? '/dashboard' : '/login')
     }, 2500)
     return () => clearTimeout(t)
   }, [router])
