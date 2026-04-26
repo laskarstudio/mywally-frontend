@@ -30,12 +30,12 @@ export default function BottomNav() {
   return (
     <>
       {/* In-flow spacer — keeps page content from sliding under the fixed nav */}
-      <div className="h-16 flex-shrink-0" aria-hidden="true" />
+      <div className="h-24 flex-shrink-0" aria-hidden="true" />
 
       {/* Fixed nav — pinned to viewport bottom, capped to the phone shell width */}
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 bg-white border-t border-border flex items-end justify-around px-6 pb-2 overflow-visible">
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 bg-white border-t border-border flex items-end justify-around px-6 pt-3 pb-[max(env(safe-area-inset-bottom),1rem)] overflow-visible">
         {/* Home */}
-        <Link href="/dashboard" className="flex flex-col items-center gap-0.5 py-2">
+        <Link href="/dashboard" className="flex flex-col items-center gap-1 py-2">
           <HomeIcon active={isHome} />
           <span className={`text-[11px] font-medium ${isHome ? 'text-primary' : 'text-muted'}`}>Home</span>
         </Link>
@@ -54,7 +54,7 @@ export default function BottomNav() {
         </Link>
 
         {/* Profile */}
-        <Link href="/profile" className="flex flex-col items-center gap-0.5 py-2">
+        <Link href="/profile" className="flex flex-col items-center gap-1 py-2">
           <ProfileIcon active={isProfile} />
           <span className={`text-[11px] font-medium ${isProfile ? 'text-primary' : 'text-muted'}`}>Profile</span>
         </Link>
