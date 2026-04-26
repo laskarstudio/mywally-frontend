@@ -188,12 +188,12 @@ export default function WallyPage() {
         </h1>
       </div>
 
-      <div className="flex-shrink-0 flex justify-center -mt-14 mb-4 relative z-10">
+      <div className="flex-shrink-0 flex justify-center -mt-10 mb-2 relative z-10 px-6">
         <Image
-          src="/assets/my-wally-chat-profile.png"
+          src="/assets/my-wally-chat.png"
           alt="Wally"
-          width={140}
-          height={140}
+          width={120}
+          height={120}
           className="object-contain drop-shadow-xl"
         />
       </div>
