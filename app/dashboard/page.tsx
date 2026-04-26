@@ -1,14 +1,13 @@
 'use client'
 
-import { useEffect } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import StatusBar from '@/app/components/status-bar'
 import BottomNav from '@/app/components/bottom-nav'
 import { useAccountSummary } from '@/app/lib/hooks/useAccount'
 import { useMembers } from '@/app/lib/hooks/useMembers'
-import { useCompleteOnboarding } from '@/app/lib/hooks/useOnboarding'
 import { useBudget } from '@/app/lib/hooks/useBudget'
+import { clearAuth } from '@/app/lib/auth'
 
 /* ── Icons ──────────────────────────────────────────────── */
 function BellIcon() {
@@ -74,11 +73,11 @@ export default function Dashboard() {
   const { data: account } = useAccountSummary()
   const { data: members } = useMembers()
   const { data: budget } = useBudget()
-  const { mutate: completeOnboarding } = useCompleteOnboarding()
 
-  useEffect(() => {
-    completeOnboarding()
-  }, [completeOnboarding])
+  function handleStartOver() {
+    clearAuth()
+    router.replace('/onboarding/consent')
+  }
 
   return (
     <div className="flex flex-col flex-1 bg-surface">
@@ -208,6 +207,13 @@ export default function Dashboard() {
             <p className="text-foreground text-sm leading-relaxed">Never share your PIN or OTP with anyone</p>
           </div>
         </div>
+
+        <button
+          onClick={handleStartOver}
+          className="w-full text-muted text-xs font-medium py-2 underline underline-offset-2 active:text-foreground"
+        >
+          Start Over (Reset Demo)
+        </button>
 
       </div>
 

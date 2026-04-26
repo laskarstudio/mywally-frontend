@@ -1,220 +1,233 @@
 /**
- * API layer — all functions are stubs returning mock data.
- * To wire up a real backend: replace each function body with a fetch() call
- * and remove the delay() helper. Types stay the same.
+ * API layer — real backend at https://wally-api.mywally-app.com
+ * Auth: JWT stored in localStorage under "mywally.jwt" (demo only).
  */
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { apiFetch, ApiError } from './client'
+import { DashboardSchema, ApiBudgetSchema, MemberDetailSchema, TransactionResponseSchema } from './types'
+import { setAuth, getFamilyId } from './auth'
+
+// ─── Internal app types ────────────────────────────────────────────────────────
 
 export type AccountSummary = {
-  balance: string
+  balance:     string
   dailyBudget: number
-  spentToday: number
-  remaining: number
+  spentToday:  number
+  remaining:   number
   progressPct: number
 }
 
-export type Transaction = {
-  id: string
-  label: string
-  amount: number
-}
-
 export type Member = {
-  id: string
-  name: string
+  id:           string  // guardianshipId
+  name:         string
   relationship: string
 }
 
-export type MemberDetail = Member & {
-  permissions: string[]
-  connected: boolean
+export type MemberDetail = {
+  id:           string
+  name:         string
+  relationship: string
+  phone:        string
+  permissions:  string[]
+  connected:    boolean
 }
 
 export type Budget = {
-  amount: string
-  period: 'Daily' | 'Weekly' | 'Monthly'
+  amount:    string
+  period:    'Daily' | 'Weekly' | 'Monthly'
   threshold: number
 }
 
-export type WallyMessage = {
-  id: string
-  text: string
-  card?: 'progress'
-}
-
-export type WallyResponseData = {
-  messages: WallyMessage[]
-}
-
 export type TransferPayload = {
-  method: string
-  amount: string
+  method:    string
+  amount:    string
   recipient: string
 }
 
 export type TransferResult = {
-  status: 'approved' | 'declined'
+  status:        'approved' | 'declined'
   transactionId: string
 }
 
-export type ConsentPayload = {
-  elderlyMode: boolean
-  familyShare: boolean
+// ─── Onboarding types ─────────────────────────────────────────────────────────
+
+export type OnboardingPayload = {
+  parentName:         string
+  guardianName:       string
+  guardianPhone:      string
+  relationshipLabel?: string
 }
 
-export type FamilyMemberPayload = {
-  phone: string
-  relationship: string
+export type OnboardingResult = {
+  familyId: string
+  parent:   { id: string; fullName: string; phone: string }
+  guardian: { id: string; fullName: string; phone: string; relationshipLabel: string }
+  auth:     { token: string; tokenType: 'Bearer'; userId: string }
 }
+
+// Legacy family payload kept for any residual hook references
+export type FamilyMemberPayload = { phone: string; relationship: string }
+export type ConsentPayload = { elderlyMode: boolean; familyShare: boolean }
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
 
+export type Family = import('./types').Family
+
 export const queryKeys = {
-  accountSummary: () => ['account', 'summary'] as const,
-  transactions:   () => ['account', 'transactions'] as const,
-  members:        () => ['members'] as const,
-  member:   (id: string) => ['members', id] as const,
-  budget:         () => ['budget'] as const,
+  accountSummary: () => ['account', 'summary']  as const,
+  members:        () => ['members']             as const,
+  member:   (id: string) => ['members', id]     as const,
+  budget:         () => ['budget']              as const,
+  families:       () => ['families']            as const,
 }
 
-// ─── Internal helpers ─────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function delay(ms: number) {
-  return new Promise<void>(resolve => setTimeout(resolve, ms))
+const PERIOD_MAP: Record<string, Budget['period']> = {
+  DAILY: 'Daily', WEEKLY: 'Weekly', MONTHLY: 'Monthly',
+}
+const PERIOD_REVERSE: Record<Budget['period'], string> = {
+  Daily: 'DAILY', Weekly: 'WEEKLY', Monthly: 'MONTHLY',
 }
 
-// ─── Account ──────────────────────────────────────────────────────────────────
+// ─── Onboarding — single public call, returns JWT ─────────────────────────────
+
+export async function bootstrapFamily(p: OnboardingPayload): Promise<OnboardingResult> {
+  const result = await apiFetch<OnboardingResult>('/families', {
+    auth:   false,
+    method: 'POST',
+    body:   JSON.stringify({
+      parentName:        p.parentName,
+      guardianName:      p.guardianName,
+      guardianPhone:     p.guardianPhone,
+      relationshipLabel: p.relationshipLabel,
+    }),
+  })
+  setAuth(result.auth.token, result.auth.userId, result.familyId)
+  return result
+}
+
+// ─── Auth — families list (used by login page for returning users) ─────────────
+
+export async function fetchFamilies(): Promise<Family[]> {
+  const raw = await apiFetch<unknown[]>('/families', { auth: false })
+  return raw as Family[]
+}
+
+// ─── Dashboard / Account ──────────────────────────────────────────────────────
 
 export async function fetchAccountSummary(): Promise<AccountSummary> {
-  await delay(300)
-  const dailyBudget = 100
-  const spentToday  = 45
+  const raw = await apiFetch<unknown>('/me/dashboard')
+  const d   = DashboardSchema.parse(raw)
   return {
-    balance:     '1,568.97',
-    dailyBudget,
-    spentToday,
-    remaining:   dailyBudget - spentToday,
-    progressPct: Math.round((spentToday / dailyBudget) * 100),
+    balance:     d.balance.amount,
+    dailyBudget: 0,
+    spentToday:  0,
+    remaining:   0,
+    progressPct: 0,
   }
 }
-
-export async function fetchRecentTransactions(): Promise<Transaction[]> {
-  await delay(300)
-  return [
-    { id: '1', label: 'Grab Food',    amount: 15 },
-    { id: '2', label: 'Petrol',       amount: 12 },
-    { id: '3', label: 'Supermarket',  amount: 18 },
-  ]
-}
-
-// ─── Members ──────────────────────────────────────────────────────────────────
 
 export async function fetchMembers(): Promise<Member[]> {
-  await delay(300)
-  return [
-    { id: 'radhiah', name: 'Nur Radhiah',    relationship: 'Daughter' },
-    { id: 'amirul',  name: 'Amirul Ruzaimi', relationship: 'Son' },
-  ]
+  const raw = await apiFetch<unknown>('/me/dashboard')
+  const d   = DashboardSchema.parse(raw)
+  return d.members.map(m => ({
+    id:           m.guardianshipId,
+    name:         m.fullName,
+    relationship: m.relationshipLabel,
+  }))
 }
 
-export async function fetchMember(id: string): Promise<MemberDetail> {
-  await delay(300)
-  const members: Record<string, MemberDetail> = {
-    radhiah: {
-      id: 'radhiah', name: 'Nur Radhiah', relationship: 'Daughter',
-      connected: true,
-      permissions: ['View balance', 'View transaction history', 'Receive alerts'],
-    },
-    amirul: {
-      id: 'amirul', name: 'Amirul Ruzaimi', relationship: 'Son',
-      connected: true,
-      permissions: ['View balance', 'View transaction history', 'Receive alerts'],
-    },
+// ─── Member detail ────────────────────────────────────────────────────────────
+
+export async function fetchMember(guardianshipId: string): Promise<MemberDetail> {
+  const raw = await apiFetch<unknown>(`/me/members/${guardianshipId}`)
+  const m   = MemberDetailSchema.parse(raw)
+
+  const permissions: string[] = []
+  if (m.permissions.viewBalance)      permissions.push('View balance')
+  if (m.permissions.viewTransactions) permissions.push('View transaction history')
+  if (m.permissions.receiveAlerts)    permissions.push('Receive alerts')
+
+  return {
+    id:           m.guardianshipId,
+    name:         m.guardian.fullName,
+    relationship: m.relationshipLabel,
+    phone:        m.guardian.phone,
+    permissions,
+    connected:    m.status === 'ACTIVE',
   }
-  const member = members[id]
-  if (!member) throw new Error(`Member not found: ${id}`)
-  return member
 }
 
-export async function removeMember(id: string): Promise<void> {
-  void id
-  await delay(500)
+export async function removeMember(guardianshipId: string): Promise<void> {
+  await apiFetch(`/guardianships/${guardianshipId}`, { method: 'DELETE' })
 }
 
 // ─── Budget ───────────────────────────────────────────────────────────────────
 
-let _savedBudget: Budget | null = null
-
 export async function fetchBudget(): Promise<Budget | null> {
-  await delay(300)
-  return _savedBudget
+  const familyId = getFamilyId()
+  if (!familyId) return null
+  try {
+    const raw = await apiFetch<unknown>(`/families/${familyId}/budget`)
+    const b   = ApiBudgetSchema.parse(raw)
+    return {
+      amount:    parseFloat(b.amount.value).toFixed(2),
+      period:    PERIOD_MAP[b.period] ?? 'Daily',
+      threshold: b.warningThresholdPercent,
+    }
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return null
+    throw err
+  }
 }
 
 export async function saveBudget(payload: Budget): Promise<Budget> {
-  await delay(500)
-  _savedBudget = payload
-  return _savedBudget
+  const familyId = getFamilyId()
+  if (!familyId) throw new Error('Not authenticated')
+  await apiFetch(`/families/${familyId}/budget`, {
+    method: 'PUT',
+    body:   JSON.stringify({
+      amount:                  parseFloat(payload.amount),
+      period:                  PERIOD_REVERSE[payload.period],
+      warningThresholdPercent: payload.threshold,
+    }),
+  })
+  return payload
 }
 
-// ─── Wally ────────────────────────────────────────────────────────────────────
-
-const WALLY_SCRIPTS: Record<string, WallyMessage[]> = {
-  spending: [
-    { id: '1', text: 'You have spent RM45.00 today. You still have RM55.00 left of your daily budget.' },
-    { id: '2', text: '', card: 'progress' },
-    { id: '3', text: 'Great job! You are staying within your budget.' },
-  ],
-  budget: [
-    { id: '1', text: 'Your daily budget is RM100.00. You have spent RM45.00 and have RM55.00 remaining.' },
-    { id: '2', text: '', card: 'progress' },
-  ],
-  scams: [
-    { id: '1', text: 'Stay safe! Never share your PIN or OTP with anyone, even if they claim to be from the bank.' },
-    { id: '2', text: 'If someone asks for your password or OTP, hang up immediately and call your bank.' },
-  ],
-  transactions: [
-    { id: '1', text: 'Here are your recent transactions today:' },
-    { id: '2', text: '• RM15.00 — Grab Food\n• RM12.00 — Petrol\n• RM18.00 — Supermarket' },
-    { id: '3', text: 'Total spent: RM45.00 of your RM100.00 daily budget.' },
-  ],
-}
-
-export async function fetchWallyResponse(key: string): Promise<WallyResponseData> {
-  await delay(600)
-  // TODO: POST /wally/query  { key, userId }
-  const messages = WALLY_SCRIPTS[key] ?? [{ id: '1', text: "I'm working on that for you!" }]
-  return { messages }
-}
-
-// ─── Send money ───────────────────────────────────────────────────────────────
+// ─── Send money / Transactions ────────────────────────────────────────────────
 
 export async function initiateTransfer(payload: TransferPayload): Promise<TransferResult> {
-  await delay(2500)
-  // TODO: POST /transfers  { method, amount, recipient }
-  let status: 'approved' | 'declined'
-  if (payload.method === 'mobile')  status = 'approved'
-  else if (payload.method === 'ewallet') status = 'declined'
-  else status = Math.random() < 0.5 ? 'approved' : 'declined'
-  return { status, transactionId: `TXN-${Date.now()}` }
-}
+  const familyId = getFamilyId() ?? 'unknown'
 
-// ─── Onboarding ───────────────────────────────────────────────────────────────
+  const txnRaw = await apiFetch<unknown>('/transactions', {
+    auth:   false,
+    method: 'POST',
+    body:   JSON.stringify({
+      externalRef:          `demo-${Date.now()}`,
+      familyId,
+      amount:               parseFloat(payload.amount),
+      currency:             'MYR',
+      recipientHandle:      payload.recipient,
+      recipientName:        payload.recipient,
+      isFirstTimeRecipient: false,
+    }),
+  })
+  const txn = TransactionResponseSchema.parse(txnRaw)
 
-import { setOnboardingState, getOnboardingState } from './onboarding-storage'
+  const terminalStates = new Set(['RELEASED', 'DENIED', 'BLOCKED', 'REJECTED', 'CANCELLED'])
+  const start = Date.now()
+  let current = txn
 
-export async function saveConsent(payload: ConsentPayload): Promise<void> {
-  // TODO: POST /onboarding/consent
-  setOnboardingState({ consent: { elderlyMode: payload.elderlyMode, familyShare: payload.familyShare } })
-}
+  while (!terminalStates.has(current.state) && Date.now() - start < 28_000) {
+    await new Promise(r => setTimeout(r, 2000))
+    const polled = await apiFetch<unknown>(`/transactions/${current.transactionId}`, { auth: false })
+    current = TransactionResponseSchema.parse(polled)
+  }
 
-export async function addFamilyMember(payload: FamilyMemberPayload): Promise<void> {
-  // TODO: POST /onboarding/family-members
-  const state = getOnboardingState()
-  setOnboardingState({ familyMembers: [...state.familyMembers, payload] })
-}
-
-export async function completeOnboarding(): Promise<void> {
-  // TODO: POST /onboarding/complete
-  setOnboardingState({ complete: true })
+  return {
+    status:        current.state === 'RELEASED' ? 'approved' : 'declined',
+    transactionId: current.transactionId,
+  }
 }
