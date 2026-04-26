@@ -94,7 +94,10 @@ function AddFamilyMemberCard({ data }: { data: Record<string, unknown> }) {
 
 /* ── set_budget ────────────────────────────────────────────────────────────── */
 function SetBudgetCard({ data }: { data: Record<string, unknown> }) {
-  const amount = String(data.amount ?? '—')
+  const rawAmount = data.amount as { value?: string } | string | undefined
+  const amount = typeof rawAmount === 'object' && rawAmount !== null
+    ? String(rawAmount.value ?? '—')
+    : String(rawAmount ?? '—')
   const period = String(data.period ?? '—')
 
   return (
