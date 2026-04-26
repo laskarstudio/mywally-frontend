@@ -36,7 +36,7 @@ export default function BudgetPage() {
     <div className="flex flex-col flex-1">
 
       {/* Orange header */}
-      <div className="bg-accent flex-shrink-0 relative overflow-hidden">
+      <div className="bg-accent flex-shrink-0 relative overflow-hidden pt-safe">
         <div className="flex items-end justify-between px-5 pb-6 mt-2">
           <h1 className="text-white font-bold text-4xl leading-tight">
             Set Daily<br />Budget

@@ -32,7 +32,7 @@ export default function MemberProfilePage() {
     <div className="flex flex-col flex-1">
 
       {/* Orange header — pb-20 (80px) leaves 24px gap before avatar top */}
-      <div className="bg-accent text-center flex-shrink-0">
+      <div className="bg-accent text-center flex-shrink-0 pt-safe">
         <div className="px-5 pb-20 mt-2">
           <h1 className="text-white font-bold text-2xl">{displayName}</h1>
           <p className="text-white/80 text-sm mt-1">{displayRelationship}</p>

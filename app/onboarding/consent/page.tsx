@@ -21,7 +21,7 @@ export default function ConsentPage() {
   return (
     <div className="flex flex-col flex-1 bg-white">
 
-      <div className="bg-accent text-center px-6 pb-24 flex-shrink-0">
+      <div className="bg-accent text-center px-6 pb-24 flex-shrink-0 pt-safe">
         <p className="text-white text-lg mt-2">Welcome to</p>
         <h1 className="text-white font-bold text-[32px] leading-tight">Elderly Mode</h1>
       </div>

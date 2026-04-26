@@ -184,7 +184,7 @@ function WallyContent() {
     return (
       <div ref={containerRef} className="flex flex-col h-dvh bg-surface">
         {/* Header with back button */}
-        <div className="flex items-center gap-2 px-4 py-3 bg-white border-b border-border flex-shrink-0">
+        <div className="flex items-center gap-2 px-4 pb-3 bg-white border-b border-border flex-shrink-0 pt-safe">
           <button
             onClick={() => setView("home")}
             className="w-9 h-9 rounded-full flex items-center justify-center text-foreground active:bg-surface"
@@ -287,7 +287,7 @@ function WallyContent() {
   /* ── Home view ──────────────────────────────────────────────────────────── */
   return (
     <div className="flex flex-col flex-1 bg-white">
-      <div className="bg-primary rounded-b-[40px] text-white text-center px-6 pb-10 flex-shrink-0">
+      <div className="bg-primary rounded-b-[40px] text-white text-center px-6 pb-10 flex-shrink-0 pt-safe">
         <p className="text-base mt-3 text-white/80">Hi, I&apos;m Wally.</p>
         <h1 className="text-3xl font-bold leading-snug mt-1">
           How Can I Help

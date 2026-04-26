@@ -15,7 +15,7 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col flex-1 bg-surface">
 
-      <div className="bg-primary text-center px-6 pb-10 flex-shrink-0">
+      <div className="bg-primary text-center px-6 pb-10 flex-shrink-0 pt-safe">
         <div className="h-11" />
         <Image
           src="/assets/my-wally-splash-screen-logo.png"

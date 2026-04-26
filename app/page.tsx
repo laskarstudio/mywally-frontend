@@ -15,6 +15,12 @@ export default function SplashScreen() {
     return () => clearTimeout(t)
   }, [router])
 
+  useEffect(() => {
+    const prev = document.body.style.backgroundColor
+    document.body.style.backgroundColor = 'var(--color-primary)'
+    return () => { document.body.style.backgroundColor = prev }
+  }, [])
+
   return (
     <div className="flex flex-col flex-1 bg-primary items-center justify-center relative overflow-hidden">
       <div className="absolute w-[420px] h-[420px] rounded-full border border-white/10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />

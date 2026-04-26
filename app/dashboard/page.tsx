@@ -157,7 +157,7 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col flex-1 bg-surface">
       {/* Orange Header */}
-      <div className="bg-accent flex-shrink-0">
+      <div className="bg-accent flex-shrink-0 pt-safe">
         <div className="flex items-center justify-between px-5 pb-5 mt-1">
           <div>
             <p className="text-white/80 text-sm">Good morning,</p>
