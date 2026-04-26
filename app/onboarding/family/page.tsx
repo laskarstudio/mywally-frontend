@@ -3,22 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { useQuery } from '@tanstack/react-query'
-import { useCompleteOnboarding, useCreateFamily } from '@/app/lib/hooks/useOnboarding'
-import { setAuth, getUser } from '@/app/lib/auth'
+import { useBootstrapFamily } from '@/app/lib/hooks/useOnboarding'
 import { ApiError } from '@/app/lib/client'
-import { fetchFamilies, loginAsFamily, queryKeys } from '@/app/lib/api'
-import type { Family } from '@/app/lib/types'
 
 type Step =
-  | 'ask_family'
-  | 'ask_account'   // inline login — pick which demo account
-  | 'ask_name'
+  | 'ask_parent_name'
+  | 'ask_guardian_name'
   | 'ask_phone'
   | 'ask_relation'
   | 'ask_consent'
-  | 'done_added'
-  | 'done_skipped'
 
 type Message = { id: string; variant: 'bot' | 'user'; text: string }
 
@@ -38,71 +31,18 @@ function WallyAvatar() {
   )
 }
 
-/* ── Inline account picker (renders inside the chat) ──────────────────────── */
-function AccountPicker({
-  onSelect,
-}: {
-  onSelect: (family: Family) => void
-}) {
-  const { data: families, isLoading, isError } = useQuery({
-    queryKey: queryKeys.families(),
-    queryFn:  fetchFamilies,
-    staleTime: Infinity,
-  })
-
-  if (isLoading) {
-    return (
-      <div className="pl-12 space-y-2">
-        {[1, 2].map(i => <div key={i} className="h-16 bg-white rounded-2xl animate-pulse" />)}
-      </div>
-    )
-  }
-  if (isError || !families?.length) {
-    return (
-      <div className="pl-12">
-        <p className="text-danger text-sm font-medium">Could not load accounts. Check your connection.</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="pl-12 space-y-2">
-      {families.map(family => (
-        <button
-          key={family.familyId}
-          onClick={() => onSelect(family)}
-          className="w-full bg-white rounded-2xl px-4 py-3 shadow-sm border border-border flex items-center gap-3 active:bg-surface transition-colors text-left"
-        >
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <span className="text-primary font-bold text-sm">{family.parent.fullName.charAt(0)}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground text-sm">{family.parent.fullName}</p>
-            {family.guardian && (
-              <p className="text-muted text-xs truncate">Guardian: {family.guardian.fullName}</p>
-            )}
-          </div>
-          <span className="text-muted">›</span>
-        </button>
-      ))}
-    </div>
-  )
-}
-
-/* ── Main page ────────────────────────────────────────────────────────────── */
 export default function FamilyPage() {
   const router    = useRouter()
   const bottomRef = useRef<HTMLDivElement>(null)
-  const { mutateAsync: createFamily }  = useCreateFamily()
-  const { mutate:  completeOnboarding } = useCompleteOnboarding()
+  const { mutateAsync: bootstrapFamily, isPending: isSubmitting } = useBootstrapFamily()
 
-  const [messages,         setMessages]         = useState<Message[]>([])
-  const [step,             setStep]             = useState<Step>('ask_family')
-  const [isTyping,         setIsTyping]         = useState(false)
-  const [nameInput,        setNameInput]        = useState('')
-  const [phoneInput,       setPhoneInput]       = useState('')
+  const [messages,        setMessages]        = useState<Message[]>([])
+  const [step,            setStep]            = useState<Step>('ask_parent_name')
+  const [isTyping,        setIsTyping]        = useState(false)
+  const [parentName,      setParentName]      = useState('')
+  const [guardianName,    setGuardianName]    = useState('')
+  const [guardianPhone,   setGuardianPhone]   = useState('')
   const [selectedRelation, setSelectedRelation] = useState('')
-  const [isLoggingIn,      setIsLoggingIn]      = useState(false)
 
   const addMsg    = useCallback((variant: 'bot' | 'user', text: string) => {
     setMessages(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, variant, text }])
@@ -110,7 +50,7 @@ export default function FamilyPage() {
   const addBotMsg = useCallback((text: string) => addMsg('bot', text), [addMsg])
 
   useEffect(() => {
-    const t = setTimeout(() => addBotMsg('Do you want to add a family member to help look after you?'), 400)
+    const t = setTimeout(() => addBotMsg("First, what's your name?"), 400)
     return () => clearTimeout(t)
   }, [addBotMsg])
 
@@ -123,43 +63,22 @@ export default function FamilyPage() {
     setTimeout(() => { setIsTyping(false); addBotMsg(text); setStep(nextStep) }, delay)
   }
 
-  /* ── Handlers ─────────────────────────────────────────────────────────── */
-
-  function handleYes() {
-    addMsg('user', 'Yes')
-    botReply('Great! First, which account is this for?', 'ask_account')
-  }
-  function handleNo() {
-    addMsg('user', 'No')
-    botReply('No problem. You can add family members later from your profile.', 'done_skipped')
+  function handleParentNameSubmit() {
+    const name = parentName.trim()
+    if (!name) return
+    addMsg('user', name)
+    botReply("What's the name of the family member who'll help look after you?", 'ask_guardian_name')
   }
 
-  async function handleAccountSelect(family: Family) {
-    setIsLoggingIn(true)
-    try {
-      const res = await loginAsFamily(family.parent.id)
-      setAuth(res.token, res.user)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('mywally_familyId', family.familyId)
-      }
-      addMsg('user', family.parent.fullName)
-      botReply('What is their full name?', 'ask_name')
-    } catch {
-      addBotMsg("Couldn't log in. Please try another account.")
-    } finally {
-      setIsLoggingIn(false)
-    }
-  }
-
-  function handleNameSubmit() {
-    const name = nameInput.trim()
+  function handleGuardianNameSubmit() {
+    const name = guardianName.trim()
     if (!name) return
     addMsg('user', name)
     botReply('What is their phone number?', 'ask_phone')
   }
 
   function handlePhoneSubmit() {
-    const phone = phoneInput.trim()
+    const phone = guardianPhone.trim()
     if (!phone) return
     addMsg('user', phone)
     botReply('What is your relationship with them?', 'ask_relation')
@@ -168,35 +87,28 @@ export default function FamilyPage() {
   function handleRelation(rel: string) {
     setSelectedRelation(rel)
     addMsg('user', rel)
-    botReply('Do you agree to share selected financial data with this person?', 'ask_consent')
+    botReply(`Almost done! Do you want to add ${guardianName.trim()} as your trusted family member?`, 'ask_consent')
   }
 
-  function handleDisagree() {
-    addMsg('user', "I don't agree")
-    botReply('No problem. You can update this later from your profile.', 'done_skipped')
-  }
-
-  async function handleAgree() {
-    addMsg('user', 'I agree')
+  async function handleConfirm() {
+    addMsg('user', 'Yes, add them')
     setIsTyping(true)
-
-    const user = getUser()
     try {
-      await createFamily({
-        parentName:        user?.fullName ?? 'Parent',
-        guardianName:      nameInput.trim(),
-        guardianPhone:     phoneInput.trim(),
+      await bootstrapFamily({
+        parentName:        parentName.trim(),
+        guardianName:      guardianName.trim(),
+        guardianPhone:     guardianPhone.trim(),
         relationshipLabel: selectedRelation,
       })
       setIsTyping(false)
-      addBotMsg('Alright! We have sent an invitation to them ✅')
-      setStep('done_added')
+      addBotMsg('All set! Welcome to Elderly Mode ✅')
+      setTimeout(() => router.push('/dashboard'), 1200)
     } catch (err) {
       setIsTyping(false)
       const isPhoneErr = err instanceof ApiError && err.status === 400 && err.message.toLowerCase().includes('phone')
       if (isPhoneErr) {
-        addBotMsg("That phone number doesn't look right. Try 01XXXXXXXX or +60XXXXXXXXX.")
-        setPhoneInput('')
+        addBotMsg("That phone number doesn't look right. Please try again with the format 01XXXXXXXX or +60XXXXXXXXX.")
+        setGuardianPhone('')
         setStep('ask_phone')
       } else {
         const msg = err instanceof Error ? err.message : 'Something went wrong.'
@@ -206,14 +118,9 @@ export default function FamilyPage() {
     }
   }
 
-  function handleProceed() {
-    completeOnboarding(undefined, { onSuccess: () => router.push('/dashboard') })
-  }
-
-  /* ── Derived flags ────────────────────────────────────────────────────── */
-  const isDone       = step === 'done_added' || step === 'done_skipped'
-  const showNameBar  = step === 'ask_name'  && !isTyping
-  const showPhoneBar = step === 'ask_phone' && !isTyping
+  const showParentNameBar   = step === 'ask_parent_name'   && !isTyping
+  const showGuardianNameBar = step === 'ask_guardian_name' && !isTyping
+  const showPhoneBar        = step === 'ask_phone'         && !isTyping
 
   return (
     <div className="flex flex-col flex-1 bg-surface">
@@ -233,8 +140,7 @@ export default function FamilyPage() {
           </div>
         ))}
 
-        {/* Typing indicator */}
-        {(isTyping || isLoggingIn) && (
+        {(isTyping || isSubmitting) && (
           <div className="flex items-start gap-2.5">
             <WallyAvatar />
             <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
@@ -247,20 +153,6 @@ export default function FamilyPage() {
           </div>
         )}
 
-        {/* Yes / No */}
-        {!isTyping && step === 'ask_family' && messages.length > 0 && (
-          <div className="flex justify-end gap-2">
-            <button onClick={handleYes} className="px-6 py-2.5 rounded-full bg-primary text-white text-sm font-semibold active:bg-primary-dark">Yes</button>
-            <button onClick={handleNo}  className="px-6 py-2.5 rounded-full border-2 border-primary text-primary text-sm font-semibold bg-white">No</button>
-          </div>
-        )}
-
-        {/* Inline account picker */}
-        {!isTyping && !isLoggingIn && step === 'ask_account' && (
-          <AccountPicker onSelect={handleAccountSelect} />
-        )}
-
-        {/* Relationship chips */}
         {!isTyping && step === 'ask_relation' && (
           <div className="flex flex-wrap gap-2 pl-12">
             {['Children', 'Spouse', 'Sibling', 'Parent', 'Other'].map(rel => (
@@ -272,15 +164,16 @@ export default function FamilyPage() {
           </div>
         )}
 
-        {/* Consent card */}
-        {!isTyping && step === 'ask_consent' && (
+        {!isTyping && !isSubmitting && step === 'ask_consent' && (
           <div className="pl-12">
-            <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-              <p className="text-sm text-foreground font-medium leading-relaxed">
-                I agree to share selected financial data with {nameInput.trim() || 'this person'}.
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <p className="text-sm text-foreground font-medium leading-relaxed mb-3">
+                Add <span className="font-bold">{guardianName.trim()}</span> as your trusted family member?
               </p>
-              <button onClick={handleAgree}    className="w-full h-11 rounded-xl bg-success text-white font-semibold text-sm active:opacity-80">I agree</button>
-              <button onClick={handleDisagree} className="w-full h-11 rounded-xl bg-danger  text-white font-semibold text-sm active:opacity-80">I don&apos;t agree</button>
+              <button onClick={handleConfirm}
+                className="w-full h-11 rounded-xl bg-primary text-white font-semibold text-sm active:opacity-80">
+                Yes, add them
+              </button>
             </div>
           </div>
         )}
@@ -288,25 +181,35 @@ export default function FamilyPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Bottom bar */}
       <div className="bg-white border-t border-border p-4 flex-shrink-0">
-        {isDone ? (
-          <button onClick={handleProceed}
-            className="w-full h-[52px] rounded-2xl bg-primary text-white font-bold text-base active:bg-primary-dark transition-colors">
-            Proceed to Dashboard
-          </button>
-        ) : showNameBar ? (
+        {showParentNameBar ? (
           <div className="flex items-center gap-2">
             <input
               type="text"
-              value={nameInput}
-              onChange={e => setNameInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleNameSubmit()}
-              placeholder="e.g. Nur Radhiah"
+              value={parentName}
+              onChange={e => setParentName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleParentNameSubmit()}
+              placeholder="Your full name"
               autoFocus
               className="flex-1 border border-primary rounded-full px-4 py-2.5 text-sm bg-white outline-none"
             />
-            <button onClick={handleNameSubmit} disabled={!nameInput.trim()}
+            <button onClick={handleParentNameSubmit} disabled={!parentName.trim()}
+              className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 active:bg-primary-dark disabled:opacity-40">
+              <SendIcon />
+            </button>
+          </div>
+        ) : showGuardianNameBar ? (
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={guardianName}
+              onChange={e => setGuardianName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleGuardianNameSubmit()}
+              placeholder="Family member's full name"
+              autoFocus
+              className="flex-1 border border-primary rounded-full px-4 py-2.5 text-sm bg-white outline-none"
+            />
+            <button onClick={handleGuardianNameSubmit} disabled={!guardianName.trim()}
               className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 active:bg-primary-dark disabled:opacity-40">
               <SendIcon />
             </button>
@@ -315,14 +218,14 @@ export default function FamilyPage() {
           <div className="flex items-center gap-2">
             <input
               type="tel"
-              value={phoneInput}
-              onChange={e => setPhoneInput(e.target.value)}
+              value={guardianPhone}
+              onChange={e => setGuardianPhone(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handlePhoneSubmit()}
-              placeholder="e.g. 0138155761 or +60138155761"
+              placeholder="e.g. 0138155761"
               autoFocus
               className="flex-1 border border-primary rounded-full px-4 py-2.5 text-sm bg-white outline-none"
             />
-            <button onClick={handlePhoneSubmit} disabled={!phoneInput.trim()}
+            <button onClick={handlePhoneSubmit} disabled={!guardianPhone.trim()}
               className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 active:bg-primary-dark disabled:opacity-40">
               <SendIcon />
             </button>

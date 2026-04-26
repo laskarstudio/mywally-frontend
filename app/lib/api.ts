@@ -1,21 +1,13 @@
 /**
- * API layer — all functions call the real backend.
- * Base URL: https://wally-api.mywally-app.com
- * Auth: Bearer token stored in localStorage (demo only).
+ * API layer — real backend at https://wally-api.mywally-app.com
+ * Auth: JWT stored in localStorage under "mywally.jwt" (demo only).
  */
 
 import { apiFetch, ApiError } from './client'
-import {
-  AuthResponseSchema,
-  DashboardSchema,
-  ApiBudgetSchema,
-  MemberDetailSchema,
-  TransactionResponseSchema,
-} from './types'
-import type { Family } from './types'
-import { setOnboardingState, getOnboardingState } from './onboarding-storage'
+import { DashboardSchema, ApiBudgetSchema, MemberDetailSchema, TransactionResponseSchema } from './types'
+import { setAuth, getFamilyId } from './auth'
 
-// ─── Internal app types (used by hooks and UI) ────────────────────────────────
+// ─── Internal app types ────────────────────────────────────────────────────────
 
 export type AccountSummary = {
   balance:     string
@@ -43,7 +35,7 @@ export type MemberDetail = {
 export type Budget = {
   amount:    string
   period:    'Daily' | 'Weekly' | 'Monthly'
-  threshold: number             // warningThresholdPercent
+  threshold: number
 }
 
 export type TransferPayload = {
@@ -57,29 +49,29 @@ export type TransferResult = {
   transactionId: string
 }
 
-export type ConsentPayload = {
-  elderlyMode: boolean
-  familyShare: boolean
+// ─── Onboarding types ─────────────────────────────────────────────────────────
+
+export type OnboardingPayload = {
+  parentName:         string
+  guardianName:       string
+  guardianPhone:      string
+  relationshipLabel?: string
 }
 
-export type FamilyMemberPayload = {
-  phone:        string
-  relationship: string
-}
-
-export type CreateFamilyPayload = {
-  parentName:        string
-  guardianName:      string
-  guardianPhone:     string
-  relationshipLabel: string
-}
-
-export type CreateFamilyResult = {
+export type OnboardingResult = {
   familyId: string
+  parent:   { id: string; fullName: string; phone: string }
   guardian: { id: string; fullName: string; phone: string; relationshipLabel: string }
+  auth:     { token: string; tokenType: 'Bearer'; userId: string }
 }
+
+// Legacy family payload kept for any residual hook references
+export type FamilyMemberPayload = { phone: string; relationship: string }
+export type ConsentPayload = { elderlyMode: boolean; familyShare: boolean }
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
+
+export type Family = import('./types').Family
 
 export const queryKeys = {
   accountSummary: () => ['account', 'summary']  as const,
@@ -98,20 +90,28 @@ const PERIOD_REVERSE: Record<Budget['period'], string> = {
   Daily: 'DAILY', Weekly: 'WEEKLY', Monthly: 'MONTHLY',
 }
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
+// ─── Onboarding — single public call, returns JWT ─────────────────────────────
+
+export async function bootstrapFamily(p: OnboardingPayload): Promise<OnboardingResult> {
+  const result = await apiFetch<OnboardingResult>('/families', {
+    auth:   false,
+    method: 'POST',
+    body:   JSON.stringify({
+      parentName:        p.parentName,
+      guardianName:      p.guardianName,
+      guardianPhone:     p.guardianPhone,
+      relationshipLabel: p.relationshipLabel,
+    }),
+  })
+  setAuth(result.auth.token, result.auth.userId, result.familyId)
+  return result
+}
+
+// ─── Auth — families list (used by login page for returning users) ─────────────
 
 export async function fetchFamilies(): Promise<Family[]> {
   const raw = await apiFetch<unknown[]>('/families', { auth: false })
   return raw as Family[]
-}
-
-export async function loginAsFamily(userId: string) {
-  const raw = await apiFetch<unknown>('/auth/tokens', {
-    auth:   false,
-    method: 'POST',
-    body:   JSON.stringify({ userId }),
-  })
-  return AuthResponseSchema.parse(raw)
 }
 
 // ─── Dashboard / Account ──────────────────────────────────────────────────────
@@ -119,9 +119,6 @@ export async function loginAsFamily(userId: string) {
 export async function fetchAccountSummary(): Promise<AccountSummary> {
   const raw = await apiFetch<unknown>('/me/dashboard')
   const d   = DashboardSchema.parse(raw)
-
-  // Spending data not exposed via REST — shown in Wally chat instead.
-  // Use the balance from the BFF; spending values default to 0.
   return {
     balance:     d.balance.amount,
     dailyBudget: 0,
@@ -169,8 +166,10 @@ export async function removeMember(guardianshipId: string): Promise<void> {
 // ─── Budget ───────────────────────────────────────────────────────────────────
 
 export async function fetchBudget(): Promise<Budget | null> {
+  const familyId = getFamilyId()
+  if (!familyId) return null
   try {
-    const raw = await apiFetch<unknown>('/me/budget')
+    const raw = await apiFetch<unknown>(`/families/${familyId}/budget`)
     const b   = ApiBudgetSchema.parse(raw)
     return {
       amount:    parseFloat(b.amount.value).toFixed(2),
@@ -184,25 +183,30 @@ export async function fetchBudget(): Promise<Budget | null> {
 }
 
 export async function saveBudget(payload: Budget): Promise<Budget> {
-  const body = {
-    amount:                  { value: payload.amount, currency: 'MYR' },
-    period:                  PERIOD_REVERSE[payload.period],
-    warningThresholdPercent: payload.threshold,
-  }
-  await apiFetch('/me/budget', { method: 'PUT', body: JSON.stringify(body) })
+  const familyId = getFamilyId()
+  if (!familyId) throw new Error('Not authenticated')
+  await apiFetch(`/families/${familyId}/budget`, {
+    method: 'PUT',
+    body:   JSON.stringify({
+      amount:                  parseFloat(payload.amount),
+      period:                  PERIOD_REVERSE[payload.period],
+      warningThresholdPercent: payload.threshold,
+    }),
+  })
   return payload
 }
 
 // ─── Send money / Transactions ────────────────────────────────────────────────
 
 export async function initiateTransfer(payload: TransferPayload): Promise<TransferResult> {
-  // 1. Submit for risk evaluation
+  const familyId = getFamilyId() ?? 'unknown'
+
   const txnRaw = await apiFetch<unknown>('/transactions', {
     auth:   false,
     method: 'POST',
     body:   JSON.stringify({
       externalRef:          `demo-${Date.now()}`,
-      familyId:             localStorage.getItem('mywally_familyId') ?? 'unknown',
+      familyId,
       amount:               parseFloat(payload.amount),
       currency:             'MYR',
       recipientHandle:      payload.recipient,
@@ -212,7 +216,6 @@ export async function initiateTransfer(payload: TransferPayload): Promise<Transf
   })
   const txn = TransactionResponseSchema.parse(txnRaw)
 
-  // 2. Poll until terminal state (max 30 s)
   const terminalStates = new Set(['RELEASED', 'DENIED', 'BLOCKED', 'REJECTED', 'CANCELLED'])
   const start = Date.now()
   let current = txn
@@ -223,34 +226,8 @@ export async function initiateTransfer(payload: TransferPayload): Promise<Transf
     current = TransactionResponseSchema.parse(polled)
   }
 
-  const approved = current.state === 'RELEASED'
-  return { status: approved ? 'approved' : 'declined', transactionId: current.transactionId }
-}
-
-// ─── Family creation (onboarding Case A — parent has no family yet) ──────────
-
-export async function createFamily(payload: CreateFamilyPayload): Promise<CreateFamilyResult> {
-  const result = await apiFetch<CreateFamilyResult>('/families', {
-    method: 'POST',
-    body:   JSON.stringify(payload),
-  })
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('mywally_familyId', result.familyId)
+  return {
+    status:        current.state === 'RELEASED' ? 'approved' : 'declined',
+    transactionId: current.transactionId,
   }
-  return result
-}
-
-// ─── Onboarding (still localStorage-backed; no API endpoint for consent) ──────
-
-export async function saveConsent(payload: ConsentPayload): Promise<void> {
-  setOnboardingState({ consent: { elderlyMode: payload.elderlyMode, familyShare: payload.familyShare } })
-}
-
-export async function addFamilyMember(payload: FamilyMemberPayload): Promise<void> {
-  const state = getOnboardingState()
-  setOnboardingState({ familyMembers: [...state.familyMembers, payload] })
-}
-
-export async function completeOnboarding(): Promise<void> {
-  setOnboardingState({ complete: true })
 }

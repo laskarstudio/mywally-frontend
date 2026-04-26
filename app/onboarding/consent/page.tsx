@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import StatusBar from '@/app/components/status-bar'
 import ConsentCheckItem from '@/app/components/consent-check-item'
-import { useSaveConsent } from '@/app/lib/hooks/useOnboarding'
 
 function CheckIcon() {
   return (
@@ -19,27 +18,16 @@ export default function ConsentPage() {
   const router = useRouter()
   const [agreeMode, setAgreeMode] = useState(false)
   const [agreeShare, setAgreeShare] = useState(false)
-  const { mutate: saveConsent, isPending } = useSaveConsent()
-
-  function handleContinue() {
-    saveConsent(
-      { elderlyMode: true, familyShare: agreeShare },
-      { onSuccess: () => router.push('/onboarding/family') },
-    )
-  }
 
   return (
     <div className="flex flex-col flex-1 bg-white">
 
-      {/* Orange header — pb-24 (96px) leaves 32px of visible orange below text before illustration */}
       <div className="bg-accent text-center px-6 pb-24 flex-shrink-0">
         <StatusBar variant="light" />
         <p className="text-white text-lg mt-2">Welcome to</p>
         <h1 className="text-white font-bold text-[32px] leading-tight">Elderly Mode</h1>
       </div>
 
-      {/* Illustration — flex sibling with -mt-16 pulls 64px up into the orange header.
-          w-32 h-32 = 128px; -mt-16 = -64px → 64px in orange, 64px in white. */}
       <div className="flex-shrink-0 flex justify-center -mt-16 mb-6 relative z-10">
         <div className="relative">
           <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-surface relative">
@@ -56,25 +44,21 @@ export default function ConsentPage() {
         </div>
       </div>
 
-      {/* Scrollable body */}
       <div className="flex-1 min-h-0 overflow-y-auto pb-8">
         <div className="px-6">
 
-          {/* What changes pill */}
           <div className="flex justify-center mb-5">
             <span className="bg-primary text-white text-sm font-semibold px-5 py-2 rounded-full">
               What changes?
             </span>
           </div>
 
-          {/* Checklist */}
           <div className="bg-surface rounded-2xl p-4 mb-5 space-y-3">
             <ConsentCheckItem label="Larger text & simplified interface" />
             <ConsentCheckItem label="Guided actions (send money, pay bills)" />
             <ConsentCheckItem label="Optional family support access" />
           </div>
 
-          {/* Consent checkboxes */}
           <div className="space-y-4 mb-8">
             <label className="flex items-start gap-3 cursor-pointer">
               <input
@@ -100,13 +84,12 @@ export default function ConsentPage() {
             </label>
           </div>
 
-          {/* CTAs */}
           <button
-            onClick={handleContinue}
-            disabled={!agreeMode || isPending}
+            onClick={() => router.push('/onboarding/family')}
+            disabled={!agreeMode}
             className="w-full h-[52px] rounded-2xl bg-primary text-white font-semibold text-base disabled:opacity-40 active:bg-primary-dark transition-colors mb-3"
           >
-            {isPending ? 'Saving…' : 'Continue'}
+            Continue
           </button>
           <button
             onClick={() => router.back()}

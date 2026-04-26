@@ -1,39 +1,36 @@
 // ⚠️  DEMO ONLY — JWT stored in localStorage. Not suitable for production.
-const TOKEN_KEY = 'mywally_token'
-const USER_KEY  = 'mywally_user'
 
-export type AuthUser = {
-  id:       string
-  role:     'PARENT' | 'GUARDIAN'
-  fullName: string
-  phone:    string
-}
+const JWT_KEY    = 'mywally.jwt'
+const USER_ID_KEY = 'mywally.userId'
+const FAMILY_KEY  = 'mywally.familyId'
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null
-  return localStorage.getItem(TOKEN_KEY)
+  return localStorage.getItem(JWT_KEY)
 }
 
-export function getUser(): AuthUser | null {
+export function getUserId(): string | null {
   if (typeof window === 'undefined') return null
-  try {
-    const raw = localStorage.getItem(USER_KEY)
-    return raw ? (JSON.parse(raw) as AuthUser) : null
-  } catch {
-    return null
-  }
+  return localStorage.getItem(USER_ID_KEY)
 }
 
-export function setAuth(token: string, user: AuthUser): void {
+export function getFamilyId(): string | null {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem(FAMILY_KEY)
+}
+
+export function setAuth(token: string, userId: string, familyId: string): void {
   if (typeof window === 'undefined') return
-  localStorage.setItem(TOKEN_KEY, token)
-  localStorage.setItem(USER_KEY, JSON.stringify(user))
+  localStorage.setItem(JWT_KEY, token)
+  localStorage.setItem(USER_ID_KEY, userId)
+  localStorage.setItem(FAMILY_KEY, familyId)
 }
 
 export function clearAuth(): void {
   if (typeof window === 'undefined') return
-  localStorage.removeItem(TOKEN_KEY)
-  localStorage.removeItem(USER_KEY)
+  localStorage.removeItem(JWT_KEY)
+  localStorage.removeItem(USER_ID_KEY)
+  localStorage.removeItem(FAMILY_KEY)
 }
 
 export function isAuthenticated(): boolean {
