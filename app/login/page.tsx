@@ -42,8 +42,6 @@ export default function LoginPage() {
         >
           Start New Session
         </button>
-
-        <p className="text-muted text-xs text-center">⚠️ Demo mode — data is not persisted</p>
       </div>
 
     </div>

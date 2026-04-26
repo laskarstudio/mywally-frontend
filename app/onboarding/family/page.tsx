@@ -12,6 +12,7 @@ type Step =
   | 'ask_phone'
   | 'ask_relation'
   | 'ask_consent'
+  | 'done'
 
 type Message = { id: string; variant: 'bot' | 'user'; text: string }
 
@@ -96,6 +97,7 @@ export default function FamilyPage() {
 
   async function handleConfirm() {
     addMsg('user', 'Yes, add them')
+    setStep('done')
     setIsTyping(true)
     try {
       await bootstrapFamily({
