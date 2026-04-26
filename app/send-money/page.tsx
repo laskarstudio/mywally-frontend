@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import StatusBar from '@/app/components/status-bar'
 import BottomNav from '@/app/components/bottom-nav'
 
 function ChevronIcon() {
@@ -68,14 +67,13 @@ export default function SendMoneyPage() {
 
       {/* Orange header */}
       <div className="bg-accent flex-shrink-0 relative overflow-hidden">
-        <StatusBar variant="light" />
         <div className="flex items-end justify-between px-5 pb-6 mt-2">
           <h1 className="text-white font-bold text-4xl leading-tight">
             Send<br />Money
           </h1>
           <Image
-            src="/assets/my-wally-money.png"
-            alt="Wally with money"
+            src="/assets/my-wally-paper-plane.png"
+            alt="Wally sending money"
             width={110}
             height={110}
             className="object-contain"

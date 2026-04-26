@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, Suspense } from 'react'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
-import StatusBar from '@/app/components/status-bar'
 import { useInitiateTransfer } from '@/app/lib/hooks/useSendMoney'
 
 function ProcessingContent() {
@@ -52,7 +51,6 @@ function ProcessingContent() {
     <div className="flex flex-col flex-1 bg-primary items-center justify-between py-0">
 
       <div className="w-full flex-shrink-0">
-        <StatusBar variant="light" />
       </div>
 
       <div className="flex flex-col items-center flex-1 justify-center px-8 gap-8">
@@ -66,7 +64,7 @@ function ProcessingContent() {
           <div className="absolute w-48 h-48 rounded-full border border-white/15" />
           <div className="absolute w-36 h-36 rounded-full bg-white/10" />
           <Image
-            src="/assets/my-wally-money.png"
+            src="/assets/my-wally-paper-plane.png"
             alt="Wally processing"
             width={140}
             height={140}

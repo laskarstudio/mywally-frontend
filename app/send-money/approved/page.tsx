@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import StatusBar from '@/app/components/status-bar'
 
 function CheckBadge() {
   return (
@@ -22,7 +21,6 @@ export default function ApprovedPage() {
 
       {/* Purple header with curved bottom */}
       <div className="bg-primary rounded-b-[40px] flex-shrink-0 pb-6">
-        <StatusBar variant="light" />
         <div className="px-6 pt-4 text-center">
           <h1 className="text-white font-bold text-2xl leading-snug">
             Your transaction<br />has been approved<br />by your family!

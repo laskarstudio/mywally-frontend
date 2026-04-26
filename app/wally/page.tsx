@@ -2,7 +2,6 @@
 
 import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
-import StatusBar from '@/app/components/status-bar'
 import BottomNav from '@/app/components/bottom-nav'
 import ChatActionCard from '@/app/components/chat-action-card'
 import { useChat } from '@/app/lib/hooks/useChat'
@@ -91,7 +90,6 @@ export default function WallyPage() {
       <div className="flex flex-col h-dvh bg-surface">
 
         <div className="flex-shrink-0 bg-surface">
-          <StatusBar variant="dark" />
         </div>
 
         {/* LLM offline banner */}
@@ -181,7 +179,6 @@ export default function WallyPage() {
     <div className="flex flex-col flex-1 bg-white">
 
       <div className="bg-primary rounded-b-[40px] text-white text-center px-6 pb-10 flex-shrink-0">
-        <StatusBar variant="light" />
         <p className="text-base mt-3 text-white/80">Hi, I&apos;m Wally.</p>
         <h1 className="text-3xl font-bold leading-snug mt-1">
           How Can I Help<br />You Today?
