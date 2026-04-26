@@ -178,7 +178,7 @@ export default function WallyPage() {
 
   /* ── Home view ──────────────────────────────────────────────────────────── */
   return (
-    <div className="flex flex-col flex-1 bg-surface">
+    <div className="flex flex-col flex-1 bg-white">
 
       <div className="bg-primary rounded-b-[40px] text-white text-center px-6 pb-10 flex-shrink-0">
         <StatusBar variant="light" />
