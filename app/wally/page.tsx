@@ -88,7 +88,7 @@ export default function WallyPage() {
   /* ── Chat view ──────────────────────────────────────────────────────────── */
   if (view === 'chat') {
     return (
-      <div className="flex flex-col flex-1 bg-surface">
+      <div className="flex flex-col h-dvh bg-surface">
 
         <div className="flex-shrink-0 bg-surface">
           <StatusBar variant="dark" />
@@ -157,6 +157,7 @@ export default function WallyPage() {
               value={textInput}
               onChange={e => setTextInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSend()}
+              onFocus={() => setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 300)}
               placeholder="Ask me anything..."
               className="flex-1 bg-transparent text-sm outline-none text-foreground placeholder:text-muted"
             />

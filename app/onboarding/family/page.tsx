@@ -58,6 +58,10 @@ export default function FamilyPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isTyping, step])
 
+  function scrollToBottom() {
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 300)
+  }
+
   function botReply(text: string, nextStep: Step, delay = 900) {
     setIsTyping(true)
     setTimeout(() => { setIsTyping(false); addBotMsg(text); setStep(nextStep) }, delay)
@@ -123,7 +127,7 @@ export default function FamilyPage() {
   const showPhoneBar        = step === 'ask_phone'         && !isTyping
 
   return (
-    <div className="flex flex-col flex-1 bg-surface">
+    <div className="flex flex-col h-dvh bg-surface">
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6 space-y-4">
 
@@ -189,6 +193,7 @@ export default function FamilyPage() {
               value={parentName}
               onChange={e => setParentName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleParentNameSubmit()}
+              onFocus={scrollToBottom}
               placeholder="Your full name"
               autoFocus
               className="flex-1 border border-primary rounded-full px-4 py-2.5 text-sm bg-white outline-none"
@@ -205,6 +210,7 @@ export default function FamilyPage() {
               value={guardianName}
               onChange={e => setGuardianName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleGuardianNameSubmit()}
+              onFocus={scrollToBottom}
               placeholder="Family member's full name"
               autoFocus
               className="flex-1 border border-primary rounded-full px-4 py-2.5 text-sm bg-white outline-none"
@@ -221,6 +227,7 @@ export default function FamilyPage() {
               value={guardianPhone}
               onChange={e => setGuardianPhone(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handlePhoneSubmit()}
+              onFocus={scrollToBottom}
               placeholder="e.g. 0138155761"
               autoFocus
               className="flex-1 border border-primary rounded-full px-4 py-2.5 text-sm bg-white outline-none"
