@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, Suspense } from "react";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import BottomNav from "@/app/components/bottom-nav";
 import ChatActionCard from "@/app/components/chat-action-card";
 import { useChat } from "@/app/lib/hooks/useChat";
@@ -114,8 +115,22 @@ function WallyAvatar() {
   );
 }
 
-export default function WallyPage() {
-  const [view, setView] = useState<"home" | "chat">("home");
+function BackIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+}
+
+function WallyContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const view = searchParams.get("view") === "chat" ? "chat" : "home";
+  const setView = (next: "home" | "chat") => {
+    router.replace(next === "chat" ? "/wally?view=chat" : "/wally", { scroll: false });
+  };
+
   const [textInput, setTextInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -167,7 +182,19 @@ export default function WallyPage() {
   /* ── Chat view ──────────────────────────────────────────────────────────── */
   if (view === "chat") {
     return (
-      <div className="flex flex-col h-dvh bg-surface">
+      <div ref={containerRef} className="flex flex-col h-dvh bg-surface">
+        {/* Header with back button */}
+        <div className="flex items-center gap-2 px-4 py-3 bg-white border-b border-border flex-shrink-0">
+          <button
+            onClick={() => setView("home")}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-foreground active:bg-surface"
+            aria-label="Back"
+          >
+            <BackIcon />
+          </button>
+          <p className="font-bold text-foreground">Wally</p>
+        </div>
+
         {/* LLM offline banner */}
         {llmOffline && (
           <div className="bg-orange-50 border-b border-orange-200 px-4 py-2 flex-shrink-0">
@@ -316,5 +343,13 @@ export default function WallyPage() {
 
       <BottomNav />
     </div>
+  );
+}
+
+export default function WallyPage() {
+  return (
+    <Suspense>
+      <WallyContent />
+    </Suspense>
   );
 }
