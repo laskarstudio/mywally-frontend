@@ -15,6 +15,11 @@ export const metadata: Metadata = {
     icon: "/icon.png",
     apple: "/apple-icon.png",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "myWally",
+  },
 };
 
 export const viewport: Viewport = {
@@ -22,7 +27,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#7C3AED",
+  viewportFit: "cover",
+  themeColor: "#EC7C3C",
 };
 
 export default function RootLayout({
