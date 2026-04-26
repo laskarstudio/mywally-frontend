@@ -32,8 +32,9 @@ function WallyAvatar() {
 }
 
 export default function FamilyPage() {
-  const router    = useRouter()
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const router       = useRouter()
+  const bottomRef    = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const { mutateAsync: bootstrapFamily, isPending: isSubmitting } = useBootstrapFamily()
 
   const [messages,        setMessages]        = useState<Message[]>([])
@@ -48,6 +49,25 @@ export default function FamilyPage() {
     setMessages(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, variant, text }])
   }, [])
   const addBotMsg = useCallback((text: string) => addMsg('bot', text), [addMsg])
+
+  // iOS keyboard fix: lock document scroll and track visual viewport height
+  useEffect(() => {
+    const doc = document.documentElement
+    doc.style.overflow = 'hidden'
+
+    const vv = window.visualViewport
+    const el = containerRef.current
+    if (vv && el) {
+      const resize = () => { el.style.height = `${vv.height}px` }
+      resize()
+      vv.addEventListener('resize', resize)
+      return () => {
+        doc.style.overflow = ''
+        vv.removeEventListener('resize', resize)
+      }
+    }
+    return () => { doc.style.overflow = '' }
+  }, [])
 
   useEffect(() => {
     const t = setTimeout(() => addBotMsg("First, what's your name?"), 400)
@@ -127,7 +147,7 @@ export default function FamilyPage() {
   const showPhoneBar        = step === 'ask_phone'         && !isTyping
 
   return (
-    <div className="flex flex-col h-dvh bg-surface">
+    <div ref={containerRef} className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex flex-col bg-surface" style={{ height: '100dvh' }}>
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6 space-y-4">
 

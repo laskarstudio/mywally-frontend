@@ -64,13 +64,35 @@ function WallyAvatar() {
 export default function WallyPage() {
   const [view,      setView]      = useState<'home' | 'chat'>('home')
   const [textInput, setTextInput] = useState('')
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const bottomRef    = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const { messages, sendMessage, isLoading, llmOffline } = useChat()
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
+
+  // iOS keyboard fix: active only during chat view
+  useEffect(() => {
+    if (view !== 'chat') return
+
+    const doc = document.documentElement
+    doc.style.overflow = 'hidden'
+
+    const vv = window.visualViewport
+    const el = containerRef.current
+    if (vv && el) {
+      const resize = () => { el.style.height = `${vv.height}px` }
+      resize()
+      vv.addEventListener('resize', resize)
+      return () => {
+        doc.style.overflow = ''
+        vv.removeEventListener('resize', resize)
+      }
+    }
+    return () => { doc.style.overflow = '' }
+  }, [view])
 
   function handleQuickAction(label: string) {
     setView('chat')
@@ -88,7 +110,7 @@ export default function WallyPage() {
   /* ── Chat view ──────────────────────────────────────────────────────────── */
   if (view === 'chat') {
     return (
-      <div className="flex flex-col h-dvh bg-surface">
+      <div ref={containerRef} className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex flex-col bg-surface" style={{ height: '100dvh' }}>
 
         <div className="flex-shrink-0 bg-surface">
           <StatusBar variant="dark" />
