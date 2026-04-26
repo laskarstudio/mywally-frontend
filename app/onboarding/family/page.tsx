@@ -206,7 +206,7 @@ export default function FamilyPage() {
 
   return (
     <div ref={containerRef} className="flex flex-col h-dvh bg-surface">
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-6 pt-safe space-y-4">
         {messages.map((msg) => (
           <div
             key={msg.id}

@@ -47,3 +47,13 @@ body {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
 }
+
+/* Safe-area utilities — respect iOS notch / dynamic island / home indicator.
+   Use pt-safe on the topmost element of a page (or its colored header) to
+   avoid content sliding under the status bar in viewport-fit=cover mode. */
+@utility pt-safe {
+  padding-top: calc(env(safe-area-inset-top) + 1rem);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
