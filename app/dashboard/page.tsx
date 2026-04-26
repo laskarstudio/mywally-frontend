@@ -163,7 +163,9 @@ export default function Dashboard() {
         <div className="flex items-center justify-between px-5 pb-5 mt-1">
           <div>
             <p className="text-white/80 text-sm">Good morning,</p>
-            <p className="text-white font-bold text-2xl">Makcik Aisyah</p>
+            <p className="text-white font-bold text-2xl">
+              {account?.greeting ?? "—"}
+            </p>
           </div>
           <button className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
             <BellIcon />

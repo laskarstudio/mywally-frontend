@@ -10,6 +10,7 @@ import { setAuth, getFamilyId } from './auth'
 // ─── Internal app types ────────────────────────────────────────────────────────
 
 export type AccountSummary = {
+  greeting:    string
   balance:     string
   dailyBudget: number
   spentToday:  number
@@ -120,6 +121,7 @@ export async function fetchAccountSummary(): Promise<AccountSummary> {
   const raw = await apiFetch<unknown>('/me/dashboard')
   const d   = DashboardSchema.parse(raw)
   return {
+    greeting:    d.greeting,
     balance:     d.balance.amount,
     dailyBudget: 0,
     spentToday:  0,
