@@ -85,7 +85,7 @@ export default function FamilyPage() {
     const phone = guardianPhone.trim()
     if (!phone) return
     addMsg('user', phone)
-    botReply('What is your relationship with them?', 'ask_relation')
+    botReply(`What is ${guardianName.trim()}'s relationship with you?`, 'ask_relation')
   }
 
   function handleRelation(rel: string) {
